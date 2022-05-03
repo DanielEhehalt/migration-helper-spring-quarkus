@@ -1,0 +1,37 @@
+listTags:none
+listSourceTechnologies:none
+listTargetTechnologies:none
+install:none
+remove:none
+addonDir:file
+immutableAddonDir:file
+batchMode:none
+debug:none
+help:none
+version:none
+input:file
+target:list:quarkus1 cloud-readiness jbpm quarkus drools fsw eap7 hibernate java-ee eap6 fuse eapxp openjdk jakarta-ee eap camel linux openjdk11 hibernate-search resteasy rhr 
+output:file
+overwrite:none
+userRulesDirectory:file
+userLabelsDirectory:file
+userIgnorePath:file
+skipReports:none
+sourceMode:none
+excludePackages:none
+mavenizeGroupId:none
+exportCSV:none
+excludeTags:list:jbpm mail cloud-readiness configuration jboss-eap5 jboss-eap6 jca descriptor seam hibernate jrun jms glassfish java orion jboss-web ejb log4j jni rpc weblogic drools web-app jonas resin datasource logging clustering webservice socket 
+packages:none
+source:list:kubernetes jsonp jbpm soa oraclejdk liquibase elytron rmi java orion camel avro soa-p sonic flyway agroal java-ee javaee amazon jonas resin kafka logging resteasy websphere quarkus1 keycloak openshift narayana jdbc seam eap7 hibernate eap6 micrometer springboot jrun glassfish openjdk eap picocli hibernate-search thorntail log4j artemis rpc weblogic drools apicurio sonicesb eapxp jsonb opentelemetry config 
+additionalClasspath:file
+disableTattletale:none
+enableCompatibleFilesReport:none
+includeTags:list:jbpm mail cloud-readiness configuration jboss-eap5 jboss-eap6 jca descriptor seam hibernate jrun jms glassfish java orion jboss-web ejb log4j jni rpc weblogic drools web-app jonas resin datasource logging clustering webservice socket 
+online:none
+enableClassNotFoundAnalysis:none
+enableTattletale:none
+explodedApp:none
+keepWorkDirs:none
+mavenize:none
+inputApplicationName:none
