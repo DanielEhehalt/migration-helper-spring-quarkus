@@ -21,13 +21,17 @@ jobs:
   # This workflow contains a single job called "greet"
   mta:
     # The type of runner that the job will run on
-    runs-on: eclipse-temurin:11-jdk-alpine
+    runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Runs a single command using the runners shell
-    - name: add bash
-      run: apk add --no-cache bash
+    - uses: actions/checkout@v3
+    - uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin' # See 'Supported distributions' for available options
+        java-version: '11'
+    # - name: add bash
+    #   run: apk add --no-cache bash
     - name: run mta
       run: bash ./Tools/mta-cli-5.2.1.Final/bin/mta-cli --input Projects/jtqj --output output --target quarkus --exportCSV --sourceMode
     - name: Archive results
