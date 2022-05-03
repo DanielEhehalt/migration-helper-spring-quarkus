@@ -37,8 +37,8 @@ jobs:
     - name: Archive results
       uses: actions/upload-artifact@v3
       with:
-        name: just CSV
+        name: allIssues
         path: |
-            output/
-            !output/reports/**/*
-            !output/stats/**/*
+            output/AllIssues.csv
+            # !output/reports/**/*
+            # !output/stats/**/*
