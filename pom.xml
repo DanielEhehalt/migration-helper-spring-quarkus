@@ -1,24 +1,64 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.devonfw</groupId>
-  <artifactId>migration-helper-spring-quarkus</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>Migration-Helper-Spring-Quarkus</name>
-  <description>This migration helper analyzes Spring Boot projects in terms of migration capability to Quarkus</description>
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.devonfw</groupId>
+    <artifactId>migration-helper-spring-quarkus</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>Migration-Helper-Spring-Quarkus</name>
+    <description>This migration helper analyzes Spring Boot projects in terms of migration capability to Quarkus
+    </description>
 
-  <dependencies>
-    <dependency>
-      <groupId>net.sf.m-m-m</groupId>
-      <artifactId>mmm-code-java-impl</artifactId>
-      <version>1.0.0-beta7</version>
-    </dependency>
+    <properties>
+        <compiler-plugin.version>3.8.1</compiler-plugin.version>
+        <maven.compiler.release>11</maven.compiler.release>
+        <log4j.version>2.17.2</log4j.version>
+    </properties>
 
-    <dependency>
-      <groupId>info.picocli</groupId>
-      <artifactId>picocli</artifactId>
-      <version>4.6.3</version>
-    </dependency>
-  </dependencies>
+    <dependencies>
+
+        <!-- Parser -->
+        <dependency>
+            <groupId>net.sf.m-m-m</groupId>
+            <artifactId>mmm-code-java-impl</artifactId>
+            <version>1.0.0-beta7</version>
+        </dependency>
+
+        <!-- CLI -->
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.6.3</version>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${compiler-plugin.version}</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

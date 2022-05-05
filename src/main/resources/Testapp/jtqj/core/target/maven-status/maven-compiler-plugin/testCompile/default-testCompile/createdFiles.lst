@@ -1,0 +1,11 @@
+com\devonfw\application\jtqj\general\common\impl\config\TestWebSecurityConfig.class
+com\devonfw\application\jtqj\general\common\base\test\AccessControlSchemaXmlValidationTest.class
+com\devonfw\application\jtqj\general\common\base\PermissionCheckTest$1.class
+com\devonfw\application\jtqj\general\common\base\test\DbTestHelper.class
+com\devonfw\application\jtqj\general\service\base\test\RestServiceTest.class
+com\devonfw\application\jtqj\general\common\base\PermissionCheckTest.class
+com\devonfw\application\jtqj\general\common\base\test\ApplicationComponentTest.class
+com\devonfw\application\jtqj\general\common\base\Devon4jPackageCheckTest.class
+com\devonfw\application\jtqj\general\common\base\test\TestUtil.class
+com\devonfw\application\jtqj\visitormanagement\logic\impl\VisitormanagementTest.class
+com\devonfw\application\jtqj\general\common\base\test\ApplicationSubsystemTest.class
