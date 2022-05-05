@@ -1,0 +1,37 @@
+#!/bin/bash
+
+#Help
+Help() {
+	echo "This migration helper analyzes Spring Boot projects in terms of migration capability to Quarkus. After various analyses, a decision aid is created that estimates the effort and identifies tasks"
+	echo "Currently only Maven is supported as build tool."
+	echo
+	echo "options:"
+	echo "-f	jar or war file location"
+	echo "-h	help"
+	echo
+}
+
+#Start Analyzing
+StartAnalyzing() {
+	#Check if pom.xml is available
+	if [ ! -f $1/pom.xml ]; then
+		echo "No Maven project found"
+		exit
+	fi
+	
+	source /Tools/mta-cli-5.2.1.Final/bin/mta-cli --input Projects/jtqj --output Output --target quarkus --exportCSV --sourceMode
+}
+
+#Process input options
+while getopts ":hf:" option; do
+   case $option in
+   		h) 
+			Help
+			exit;;
+		f) 
+			StartAnalyzing $OPTARG;;
+		\?) 
+			echo "Error: Invalid option"
+			exit;;
+	esac
+done

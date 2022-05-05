@@ -1,0 +1,24 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.devonfw</groupId>
+  <artifactId>migration-helper-spring-quarkus</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>Migration-Helper-Spring-Quarkus</name>
+  <description>This migration helper analyzes Spring Boot projects in terms of migration capability to Quarkus</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>net.sf.m-m-m</groupId>
+      <artifactId>mmm-code-java-impl</artifactId>
+      <version>1.0.0-beta7</version>
+    </dependency>
+
+    <dependency>
+      <groupId>info.picocli</groupId>
+      <artifactId>picocli</artifactId>
+      <version>4.6.3</version>
+    </dependency>
+  </dependencies>
+
+</project>
