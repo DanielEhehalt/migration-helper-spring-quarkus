@@ -58,6 +58,21 @@
                     <release>${maven.compiler.release}</release>
                 </configuration>
             </plugin>
+
+            <!--Application Assembler Plugin for generating scripts for starting java apps-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>appassembler-maven-plugin</artifactId>
+                <version>1.10</version>
+                <configuration>
+                    <programs>
+                        <program>
+                            <mainClass>com.devonfw.application.Application</mainClass>
+                            <id>app</id>
+                        </program>
+                    </programs>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
