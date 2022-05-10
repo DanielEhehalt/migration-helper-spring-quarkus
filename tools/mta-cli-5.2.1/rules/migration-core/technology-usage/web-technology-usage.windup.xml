@@ -1,0 +1,211 @@
+<?xml version="1.0"?>
+<ruleset id="technology-usage-web" xmlns="http://windup.jboss.org/schema/jboss-ruleset" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://windup.jboss.org/schema/jboss-ruleset http://windup.jboss.org/schema/jboss-ruleset/windup-jboss-ruleset.xsd">
+    <metadata>
+        <description>
+            This ruleset provides statistical summaries of web (view) related items that were found during the analysis.
+        </description>
+        <dependencies>
+            <addon id="org.jboss.windup.rules,windup-rules-javaee,3.0.0.Final"/>
+            <addon id="org.jboss.windup.rules,windup-rules-java,3.0.0.Final"/>
+        </dependencies>
+        <phase>PostMigrationRulesPhase</phase>
+    </metadata>
+    <rules>
+        <rule id="technology-usage-web-01000">
+            <when>
+                <graph-query discriminator="JsfSourceFile" />
+            </when>
+            <perform>
+                <technology-identified name="JSF Page">
+                    <tag name="View"/>
+                    <tag name="Web"/>
+                    <tag name="Java EE"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-01100">
+            <when>
+                <graph-query discriminator="JspSourceFileModel" />
+            </when>
+            <perform>
+                <technology-identified name="JSP Page">
+                    <tag name="View"/>
+                    <tag name="Web"/>
+                    <tag name="Java EE"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-01200">
+            <when>
+                <graph-query discriminator="WebXmlModel" />
+            </when>
+            <perform>
+                <technology-identified name="Web XML File">
+                    <tag name="View"/>
+                    <tag name="Web"/>
+                    <tag name="Java EE"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-01300">
+            <when>
+                <javaclass references="javax.websocket.server.ServerEndpoint">
+                    <location>ANNOTATION</location>
+                </javaclass>
+            </when>
+            <perform>
+                <technology-identified name="WebSocket">
+                    <tag name="View"/>
+                    <tag name="Web"/>
+                    <tag name="Java EE"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-01400">
+            <when>
+                <or>
+                    <javaclass references="java.applet.Applet">
+                        <location>INHERITANCE</location>
+                    </javaclass>
+                     <file filename="{*}applet{*}.jar" />
+                </or>
+            </when>
+            <perform>
+                <technology-identified name="Applet">
+                    <tag name="View"/>
+                    <tag name="Rich"/>
+                    <tag name="Java EE"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-01500">
+            <when>
+                <file filename="{*}.jnlp" />
+            </when>
+            <perform>
+                <technology-identified name="JNLP">
+                    <tag name="View"/>
+                    <tag name="Rich"/>
+                    <tag name="Java EE"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-01600">
+            <when>
+                <or>
+                    <file filename="{*}jnlp{*}.jar" />
+                    <file filename="{*}webstart{*}.jar" />
+                </or>
+            </when>
+            <perform>
+                <technology-identified name="JNLP">
+                    <tag name="View"/>
+                    <tag name="Rich"/>
+                    <tag name="Embedded"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-01700">
+            <when>
+                <file filename="{*}swing{*}.jar" />
+            </when>
+            <perform>
+                <technology-identified name="Swing">
+                    <tag name="View"/>
+                    <tag name="Rich"/>
+                    <tag name="Embedded"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-01800">
+            <when>
+                <file filename="{*}miglayout{*}.jar" />
+            </when>
+            <perform>
+                <technology-identified name="MiGLayout">
+                    <tag name="View"/>
+                    <tag name="Rich"/>
+                    <tag name="Embedded"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-01900">
+            <when>
+                <file filename="{*}jgoodies{*}.jar" />
+            </when>
+            <perform>
+                <technology-identified name="JGoodies">
+                    <tag name="View"/>
+                    <tag name="Rich"/>
+                    <tag name="Embedded"/>
+                </technology-identified>
+            </perform>
+        </rule>
+         <rule id="technology-usage-web-02000">
+            <when>
+                <file filename="{*}formlayoutmakerx{*}.jar" />
+            </when>
+            <perform>
+                <technology-identified name="FormLayoutMaker">
+                    <tag name="View"/>
+                    <tag name="Rich"/>
+                    <tag name="Embedded"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-02100">
+            <when>
+                <file filename="{*}magicgrouplayout{*}.jar" />
+            </when>
+            <perform>
+                <technology-identified name="Magicgrouplayout">
+                    <tag name="View"/>
+                    <tag name="Rich"/>
+                    <tag name="Embedded"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-02200">
+            <when>
+                <file filename="{*}swt{*}.jar" />
+            </when>
+            <perform>
+                <technology-identified name="Standard Widget Toolkit (SWT)">
+                    <tag name="View"/>
+                    <tag name="Rich"/>
+                    <tag name="Embedded"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-02300">
+            <when>
+                <file filename="{*}javafx{*}.jar" />
+            </when>
+            <perform>
+                <technology-identified name="JavaFX">
+                    <tag name="View"/>
+                    <tag name="Rich"/>
+                    <tag name="Embedded"/>
+                </technology-identified>
+            </perform>
+        </rule>
+        <rule id="technology-usage-web-02400">
+            <when>
+                <or>
+                    <file filename="rcp{*}.jar" />
+                    <file filename="{*}eclipse.rcp{*}.jar" />
+                    <file filename="{*}eclipse{*}runtime{*}.jar" />
+                    <file filename="{*}eclipse.ui{*}.jar" />
+                </or>
+            </when>
+            <perform>
+                <technology-identified name="Eclipse RCP">
+                    <tag name="View"/>
+                    <tag name="Rich"/>
+                    <tag name="Embedded"/>
+                </technology-identified>
+            </perform>
+        </rule>
+    </rules>
+</ruleset>

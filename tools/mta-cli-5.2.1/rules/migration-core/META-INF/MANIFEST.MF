@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+Implementation-Title: Windup Rulesets
+Implementation-Version: 5.2.1.Final
+Java-Version: 1.8.0_191
+Built-By: fedora
+Scm-Connection: scm:git:https://github.com/windup/windup-rulesets.git
+Specification-Vendor: JBoss by Red Hat
+Os-Arch: amd64
+Specification-Title: Windup Rulesets
+Implementation-Vendor-Id: org.jboss.windup.rules
+Java-Vendor: Oracle Corporation
+Os-Name: Linux
+Scm-Url: http://github.com/windup/windup-rulesets
+Implementation-Vendor: JBoss by Red Hat
+Os-Version: 4.18.19-100.fc27.x86_64
+Scm-Revision: e8e51bd99f41342f0f0997b4d1353364964fe4ee
+Created-By: Apache Maven 3.5.0
+Build-Jdk: 1.8.0_191
+Specification-Version: 5.2
+Implementation-URL: http://www.jboss.org/windup-rulesets
+
