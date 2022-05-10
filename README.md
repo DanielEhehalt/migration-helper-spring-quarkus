@@ -4,7 +4,7 @@ This migration helper analyzes Spring Boot projects in terms of migration capabi
 
 ## Prerequisites
 
-Java 11
+- Java 11
 
 ## Build
 
