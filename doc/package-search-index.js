@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"com.devonfw.application"},{"l":"com.devonfw.application.analyzer"},{"l":"com.devonfw.application.utils"}]

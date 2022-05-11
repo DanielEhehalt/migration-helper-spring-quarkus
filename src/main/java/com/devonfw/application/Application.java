@@ -1,19 +1,20 @@
 package com.devonfw.application;
 
-import com.devonfw.application.cli.CommandLineUtils;
+import com.devonfw.application.utils.AnalyzerUtils;
+import com.devonfw.application.utils.CommandLineUtils;
+import com.devonfw.application.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import java.io.File;
-import java.time.Instant;
+import java.util.List;
 
 /**
- * TODO dehehalt This type ...
+ * Manages CLI and initiates the analysis steps
  */
-
 @CommandLine.Command(
-        name = "MigrationHelper",
+        name = "Migration Helper Spring Quarkus",
         description = "Helps you"
 )
 public class Application implements Runnable {
@@ -26,6 +27,9 @@ public class Application implements Runnable {
     @CommandLine.Option(names = {"-f", "--file"}, description = "Filepath")
     private String filepath;
 
+    /**
+     * Main method. Initiates CLI
+     */
     public static void main(String args[]) {
 
         new CommandLine(new Application()).execute(args);
@@ -39,6 +43,9 @@ public class Application implements Runnable {
         System.out.println(Arrays.toString(packages));*/
     }
 
+    /**
+     * Execute the analysis steps
+     */
     @Override
     public void run() {
 
@@ -49,16 +56,26 @@ public class Application implements Runnable {
         }
 
         //Execute analysis
-        if (!filepath.equals("")) {
-            String resultPath = createDirectoryForResults();
+        else if (!filepath.equals("")) {
+            //Check if file exists
+            File file = new File(filepath);
+            if (!file.exists()) {
+                System.out.println("Error: File does not exist");
+                System.exit(1);
+            }
+
+            //Create directory for results
+            String resultPath = Utils.createDirectoryForResults();
+
             System.out.println("Start the analysis");
             System.out.println("Filepath: " + filepath);
             System.out.println("Result folder: " + resultPath);
 
             //Execute MTA
-            boolean execution = CommandLineUtils.executeMTA(filepath, resultPath);
+            boolean execution = AnalyzerUtils.executeMTA(filepath, resultPath);
 
             //Generate package blacklist
+            List<List<String>> csv = Utils.parseCSV(resultPath);
             /*TODO: Generate package blacklist*/
 
             //Analyse usage of blacklisted packages
@@ -69,15 +86,9 @@ public class Application implements Runnable {
 
             //Exit
             System.exit(0);
+        } else {
+            System.out.println("No arguments");
+            System.exit(255);
         }
-    }
-
-    public String createDirectoryForResults() {
-
-        Instant instant = Instant.now();
-        long timeStampMillis = instant.toEpochMilli();
-        String resultPath = System.getProperty("user.dir") + "\\results\\" + timeStampMillis;
-        boolean mkdir = new File(resultPath).mkdirs();
-        return resultPath;
     }
 }
