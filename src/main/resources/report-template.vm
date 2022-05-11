@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+<head>
+    <title>Migration Helper Spring Quarkus</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+</head>
+<body>
+<h1>Migration Helper Spring Quarkus</h1>
+<h2>Blacklisted Dependencies</h2>
+<table>
+    <tr>
+        <th>Name</td>
+        <th>Description</td>
+    </tr>
+    #foreach( $record in $records )
+    <tr>
+        <td>$record.name</td>
+        <td>$record.description</td>
+    </tr>
+    #end
+</table>
+</body>
+</html>

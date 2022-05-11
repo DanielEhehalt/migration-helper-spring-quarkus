@@ -1,9 +1,11 @@
 package com.devonfw.application.utils;
 
+import com.devonfw.application.model.BlacklistEntry;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
@@ -48,14 +50,13 @@ public class Utils {
             while ((values = csvReader.readNext()) != null) {
                 if(Arrays.asList(values).contains("mandatory")) {
                     records.add(Arrays.asList(values));
-                    System.out.println(Arrays.toString(values));
                 }
             }
 
             //Delete MTA files
             FileUtils.cleanDirectory(new File(resultPath));
 
-        } catch (IOException e) {
+        } catch (IOException | CsvValidationException e) {
             e.printStackTrace();
         }
 
@@ -75,4 +76,21 @@ public class Utils {
         return resultPath;
     }
 
+    /**
+     * Converts output from CSV parser to blackList
+     * @param csvOutput Output from CSV parser
+     * @return Blacklist
+     */
+    public static List<BlacklistEntry> convertCSVOutputToBlacklist(List<List<String>> csvOutput) {
+
+        List<BlacklistEntry> blackList = new ArrayList<>();
+
+        csvOutput.forEach(entry -> {
+            String name = entry.get(0);
+            String description = entry.get(2);
+            blackList.add(new BlacklistEntry(name, description));
+        });
+
+        return blackList;
+    }
 }

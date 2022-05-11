@@ -1,7 +1,9 @@
 package com.devonfw.application;
 
+import com.devonfw.application.model.BlacklistEntry;
 import com.devonfw.application.utils.AnalyzerUtils;
 import com.devonfw.application.utils.CommandLineUtils;
+import com.devonfw.application.utils.ReportGenerator;
 import com.devonfw.application.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +32,7 @@ public class Application implements Runnable {
     /**
      * Main method. Initiates CLI
      */
-    public static void main(String args[]) {
+    public static void main(String[] args) {
 
         new CommandLine(new Application()).execute(args);
 
@@ -74,9 +76,10 @@ public class Application implements Runnable {
             //Execute MTA
             boolean execution = AnalyzerUtils.executeMTA(filepath, resultPath);
 
-            //Generate package blacklist
-            List<List<String>> csv = Utils.parseCSV(resultPath);
-            /*TODO: Generate package blacklist*/
+            //Generate list of blacklisted packages
+            List<List<String>> csvOutput = Utils.parseCSV(resultPath);
+            List<BlacklistEntry> blacklist = Utils.convertCSVOutputToBlacklist(csvOutput);
+            ReportGenerator.generateReport(blacklist, resultPath);
 
             //Analyse usage of blacklisted packages
             /*TODO: Analyse usage of blacklisted packages*/
