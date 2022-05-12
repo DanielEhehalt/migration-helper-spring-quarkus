@@ -78,14 +78,16 @@ public class Application implements Runnable {
 
             //Generate list of blacklisted packages
             List<List<String>> csvOutput = Utils.parseCSV(resultPath);
-            List<BlacklistEntry> blacklist = Utils.convertCSVOutputToBlacklist(csvOutput);
-            ReportGenerator.generateReport(blacklist, resultPath);
+            List<BlacklistEntry> blacklist = Utils.generateBlacklist(csvOutput);
 
             //Analyse usage of blacklisted packages
             /*TODO: Analyse usage of blacklisted packages*/
 
             //Analyse usage of reflection
             /*TODO: Analyse usage of reflection*/
+
+            //Generate report
+            ReportGenerator.generateReport(blacklist, resultPath);
 
             //Exit
             System.exit(0);
