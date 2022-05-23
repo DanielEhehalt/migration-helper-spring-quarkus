@@ -1,12 +1,12 @@
 package com.devonfw.application.utils;
 
 import com.devonfw.application.model.BlacklistEntry;
+import com.devonfw.application.model.ReflectionUsageEntry;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
-import org.apache.commons.io.FileUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -56,13 +56,15 @@ public class Utils {
             //Save mandatory issues of csv file in list
             String[] values;
             while ((values = csvReader.readNext()) != null) {
-                if (Arrays.asList(values).contains("mandatory")) {
+                if (Arrays.asList(values).contains("mandatory") ||  Arrays.asList(values).contains("reflection")) {
                     records.add(Arrays.asList(values));
                 }
             }
 
             //Delete MTA files
-            FileUtils.cleanDirectory(new File(resultPath));
+            //ToDo: Clean files
+
+            // FileUtils.cleanDirectory(new File(resultPath));
 
         } catch (IOException | CsvValidationException e) {
             e.printStackTrace();
@@ -96,32 +98,56 @@ public class Utils {
         List<BlacklistEntry> blackList = new ArrayList<>();
 
         csvOutput.forEach(entry -> {
-            String name = entry.get(0);
-            String description = entry.get(2);
+            if (entry.get(1).equals("mandatory")) {
+                String name = entry.get(0);
+                String description = entry.get(2);
 
-            //Searches for duplicate entries. MTA generates irrelevant duplicate entries
-            boolean duplicateEntry = false;
-            for (BlacklistEntry blacklistEntry : blackList) {
-                if (blacklistEntry.getId().equals(name)) {
-                    duplicateEntry = true;
-                    break;
+                //Searches for duplicate entries. MTA generates irrelevant duplicate entries
+                boolean duplicateEntry = false;
+                for (BlacklistEntry blacklistEntry : blackList) {
+                    if (blacklistEntry.getRuleId().equals(name)) {
+                        duplicateEntry = true;
+                        break;
+                    }
                 }
-            }
 
-            if (!duplicateEntry) {
-                blackList.add(new BlacklistEntry(name, description));
+                if (!duplicateEntry) {
+                    blackList.add(new BlacklistEntry(name, description));
+                }
             }
         });
 
         //Enhancing the found incompatibilities with the package names
         HashMap<String, String> packagesOfRules = Utils.resolvePackagesFromRules();
         blackList.forEach(blacklistEntry -> packagesOfRules.forEach((id, blacklistedPackage) -> {
-            if (blacklistEntry.getId().equals(id)) {
-                blacklistEntry.setBlacklistedPackage(blacklistedPackage);
+            if (blacklistEntry.getRuleId().equals(id)) {
+                blacklistEntry.setNameOfPackage(blacklistedPackage);
             }
         }));
 
         return blackList;
+    }
+
+    /**
+     * Converts output from CSV parser to a list of reflection usage
+     *
+     * @param csvOutput Output from CSV parser
+     * @return reflection usage list
+     */
+    public static List<ReflectionUsageEntry> generateReflectionUsageList(List<List<String>> csvOutput) {
+
+        List<ReflectionUsageEntry> reflectionUsage = new ArrayList<>();
+
+        csvOutput.forEach(entry -> {
+            if (entry.get(1).equals("reflection")) {
+                String nameOfClass = entry.get(6);
+                String nameOfPackage = entry.get(7);
+
+                reflectionUsage.add(new ReflectionUsageEntry(nameOfClass, nameOfPackage));
+            }
+        });
+
+        return reflectionUsage;
     }
 
     /**

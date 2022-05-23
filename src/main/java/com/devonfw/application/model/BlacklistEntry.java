@@ -4,21 +4,21 @@ package com.devonfw.application.model;
  * Model for Blacklist entries
  */
 public class BlacklistEntry {
-    private String id;
+    private String ruleId;
     private String description;
-    private String blacklistedPackage;
+    private String nameOfPackage;
 
-    public BlacklistEntry(String id, String description) {
-        this.id = id;
+    public BlacklistEntry(String ruleId, String description) {
+        this.ruleId = ruleId;
         this.description = description;
     }
 
-    public String getId() {
-        return id;
+    public String getRuleId() {
+        return ruleId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setRuleId(String ruleId) {
+        this.ruleId = ruleId;
     }
 
     public String getDescription() {
@@ -29,11 +29,11 @@ public class BlacklistEntry {
         this.description = description;
     }
 
-    public String getBlacklistedPackage() {
-        return blacklistedPackage;
+    public String getNameOfPackage() {
+        return nameOfPackage;
     }
 
-    public void setBlacklistedPackage(String blacklistedPackage) {
-        this.blacklistedPackage = blacklistedPackage;
+    public void setNameOfPackage(String nameOfPackage) {
+        this.nameOfPackage = nameOfPackage;
     }
 }

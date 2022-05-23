@@ -23,5 +23,4 @@ public class CommandLineUtils {
                 "-f --file      jar or war file location \n" +
                 "-h --help      help \n";
     }
-
 }

@@ -27,7 +27,9 @@ public class AnalyzerUtils {
         builder.directory(new File(System.getProperty("user.dir")));
 
         if (isWindows) {
-            builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", filepath, "--output", resultPath, "--target", "quarkus", "--exportCSV", "--batchMode", "--skipReports");
+            // --userRulesDirectory for own rules
+            // builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", filepath, "--output", resultPath, "--target", "quarkus", "--exportCSV", "--batchMode", "--skipReports");
+            builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", filepath, "--output", resultPath, "--target", "quarkus", "--exportCSV", "--batchMode", "--skipReports", "--sourceMode");
         } else {
             builder.command("./tools/mta-cli-5.2.1/bin/mta-cli", "--input", filepath, "--output", resultPath, "--target", "quarkus", "--exportCSV", "--batchMode");
         }

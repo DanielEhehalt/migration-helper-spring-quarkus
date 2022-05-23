@@ -1,6 +1,7 @@
 package com.devonfw.application.utils;
 
 import com.devonfw.application.model.BlacklistEntry;
+import com.devonfw.application.model.ReflectionUsageEntry;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
@@ -21,7 +22,7 @@ public class ReportGenerator {
      * @param blacklist Blacklisted Dependencies
      * @param resultPath Path to the directory where the results will be saved
      */
-    public static void generateReport(List<BlacklistEntry> blacklist, String resultPath) {
+    public static void generateReport(List<BlacklistEntry> blacklist, List<ReflectionUsageEntry> reflectionUsage, String resultPath) {
 
         //Configuration for template location under src/main/resources
         Properties properties = new Properties();
@@ -34,7 +35,8 @@ public class ReportGenerator {
         Template template = Velocity.getTemplate("report-template.vm");
 
         //Insert dynamic values
-        context.put( "records", blacklist.iterator() );
+        context.put("blacklist", blacklist.iterator());
+        context.put("reflectionUsageList", reflectionUsage.iterator());
 
         //Merge template
         StringWriter sw = new StringWriter();

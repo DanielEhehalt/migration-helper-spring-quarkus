@@ -7,21 +7,56 @@ import net.sf.mmm.code.java.maven.impl.MavenBridgeImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 
 /**
- * TODO dehehalt This type ...
+ * Class for analyzing java projects
  */
 public class Analyzer {
 
     private static final Logger LOG = LoggerFactory.getLogger(Analyzer.class);
 
     public Analyzer() {
+    }
+
+    public static HashMap<String, Integer> collectPackages(File filepath, Path mavenRepo, HashMap<String, Integer> result) {
+
+        File[] directories = filepath.listFiles(File::isDirectory);
+
+        if (directories != null && directories.length > 0) {
+            for (File directory : directories) {
+                File[] files = new File(String.valueOf(directory)).listFiles(File::isFile);
+                if (files != null && files.length > 0) {
+                    for (File file : files) {
+                        //Exclude non-java files and tests
+                        String filename = file.getName();
+                        if (filename.endsWith(".java") && !filename.toLowerCase().contains("test")) {
+                            JavaContext javaContext = Analyzer.getJavaContext(file.toPath(), filepath.toPath(), mavenRepo);
+                            Package[] packages = javaContext.getClassLoader().getDefinedPackages();
+                            for (Package p : packages) {
+                                if (result.get(p.toString()) != null) {
+                                    int quantity = result.get(p.toString());
+                                    result.replace(p.toString(), quantity + 1);
+                                } else {
+                                    result.put(p.toString(), 1);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Analyzer.collectPackages(directory, mavenRepo, result);
+            }
+            return result;
+        }
+        return result;
     }
 
     public static JavaContext getJavaContext(Path inputFile, Path inputProject, Path mavenRepo) {
@@ -83,7 +118,7 @@ public class Analyzer {
     /**
      * This method traverse the folder in reverse order from child to parent
      *
-     * @param folder parent input file
+     * @param folder      parent input file
      * @param packageName the package name
      * @return package name
      */

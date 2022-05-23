@@ -13,13 +13,26 @@
             <th>Package</th>
             <th>Description</th>
         </tr>
-        #foreach( $record in $records )
+        #foreach( $blacklistEntry in $blacklist )
         <tr>
-            <td>$record.id</td>
-            <td>$record.blacklistedPackage</td>
-            <td>$record.description</td>
+            <td>$blacklistEntry.ruleId</td>
+            <td>$blacklistEntry.nameOfPackage</td>
+            <td>$blacklistEntry.description</td>
         </tr>
         #end
     </table>
+    <h2>Reflection Usage</h2>
+        <table>
+            <tr>
+                <th>Class</th>
+                <th>Package</th>
+            </tr>
+            #foreach( $reflectionUsage in $reflectionUsageList )
+            <tr>
+                <td>$reflectionUsage.nameOfClass</td>
+                <td>$reflectionUsage.nameOfPackage</td>
+            </tr>
+            #end
+        </table>
 </body>
 </html>
