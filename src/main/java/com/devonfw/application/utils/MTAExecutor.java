@@ -7,13 +7,14 @@ import java.io.*;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
-public class AnalyzerUtils {
+public class MTAExecutor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(AnalyzerUtils.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MTAExecutor.class);
 
     /**
      * Runs the Red Hat Migration Toolkit for Applications (MTA) to find incompatible dependencies.
      * The result of the analysis is temporarily saved in the results folder
+     *
      * @param filepath Path to the jar/ war file which should be analyzed
      * @param resultPath Path to the directory where the results will be saved
      * @return If execution was successful
@@ -28,7 +29,6 @@ public class AnalyzerUtils {
 
         if (isWindows) {
             // --userRulesDirectory for own rules
-            // builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", filepath, "--output", resultPath, "--target", "quarkus", "--exportCSV", "--batchMode", "--skipReports");
             builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", filepath, "--output", resultPath, "--target", "quarkus", "--exportCSV", "--batchMode", "--skipReports", "--sourceMode");
         } else {
             builder.command("./tools/mta-cli-5.2.1/bin/mta-cli", "--input", filepath, "--output", resultPath, "--target", "quarkus", "--exportCSV", "--batchMode");

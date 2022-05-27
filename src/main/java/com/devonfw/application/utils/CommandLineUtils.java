@@ -12,6 +12,7 @@ public class CommandLineUtils {
 
     /**
      * Returns the help text for the --help argument
+     *
      * @return The help text
      */
     public static String printHelp() {

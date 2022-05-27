@@ -25,6 +25,7 @@ This migration helper analyzes Spring Boot projects in terms of migration capabi
 
 ## Options
 ```
--f --file     jar or war file location
--h --help     display help
+-f --file       jar or war file location
+-m --mavenRepo  maven repository location
+-h --help       display help
 ```

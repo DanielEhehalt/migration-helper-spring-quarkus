@@ -7,6 +7,7 @@ import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
+import org.apache.commons.io.FileUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -62,9 +63,7 @@ public class Utils {
             }
 
             //Delete MTA files
-            //ToDo: Clean files
-
-            // FileUtils.cleanDirectory(new File(resultPath));
+            FileUtils.cleanDirectory(new File(resultPath));
 
         } catch (IOException | CsvValidationException e) {
             e.printStackTrace();
@@ -152,6 +151,7 @@ public class Utils {
 
     /**
      * Parses the rules (xml-files) stored in the MTA and resolves the packages that belong to the rules.
+     *
      * @return Map with the rule ids and the corresponding packages
      */
     public static HashMap<String, String> resolvePackagesFromRules() {
