@@ -1,6 +1,6 @@
 package com.devonfw.application;
 
-import com.devonfw.application.analyzer.Analyzer;
+import com.devonfw.application.analyzer.ProjectAnalyzerUtils;
 import com.devonfw.application.model.BlacklistEntry;
 import com.devonfw.application.model.ReflectionUsageEntry;
 import com.devonfw.application.utils.CommandLineUtils;
@@ -92,20 +92,23 @@ public class Application implements Runnable {
             //Examples
             File entryPoint = new File(this.inputProject + "\\src\\main\\java");
 
-            HashMap<String, Integer> packages = Analyzer.collectPackagesRecursively(entryPoint, Path.of(this.inputProject), Path.of(mavenRepo), new HashMap<>());
-            System.out.println("############################## PACKAGES ##############################");
-            sortMapByQuantityAndPrintContent(packages);
-
-            HashMap<String, Integer> classes = Analyzer.collectClassesRecursively(entryPoint, Path.of(this.inputProject), Path.of(mavenRepo), new HashMap<>());
-            System.out.println("############################## CLASSES ##############################");
-            sortMapByQuantityAndPrintContent(classes);
-
-            HashMap<String, Integer> imports = Analyzer.collectImportsRecursively(entryPoint, new HashMap<>());
+//            HashMap<String, Integer> packages = Analyzer.collectPackagesRecursively(entryPoint, Path.of(this.inputProject), Path.of(mavenRepo), new HashMap<>());
+//            System.out.println("############################## PACKAGES ##############################");
+//            sortMapByQuantityAndPrintContent(packages);
+//
+//            HashMap<String, Integer> classes = Analyzer.collectClassesRecursively(entryPoint, Path.of(this.inputProject), Path.of(mavenRepo), new HashMap<>());
+//            System.out.println("############################## CLASSES ##############################");
+//            sortMapByQuantityAndPrintContent(classes);
+//
+            HashMap<String, Integer> imports = ProjectAnalyzerUtils.collectImportsRecursively(entryPoint, new HashMap<>());
             System.out.println("############################## IMPORTS ##############################");
             sortMapByQuantityAndPrintContent(imports);
 
             System.out.println("############################## DEPENDENCIES ##############################");
-            Analyzer.collectDependenciesRecursively(entryPoint, Path.of(this.inputProject), Path.of(mavenRepo), new ArrayList<>()).forEach(System.out::println);
+            List<String> libraries = ProjectAnalyzerUtils.collectAllLibrariesRecursively(entryPoint, Path.of(this.inputProject), Path.of(mavenRepo), new ArrayList<>());
+            HashMap<String, List<String>> allClassesOfAllLibraries = ProjectAnalyzerUtils.getAllClassesOfAllLibraries(libraries);
+            HashMap<String, List<String>> mapOfImportStatementsAndPossibleProviderLibraries = ProjectAnalyzerUtils.mapImportStatementsToLibraries(new ArrayList<>(imports.keySet()), allClassesOfAllLibraries);
+            mapOfImportStatementsAndPossibleProviderLibraries.forEach((key, value) -> System.out.println(key + " " + Arrays.toString(value.toArray())));
 
             //Exit
             System.exit(0);

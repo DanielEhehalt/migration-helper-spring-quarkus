@@ -1,6 +1,6 @@
 package com.devonfw.application.utils;
 
-import com.devonfw.application.analyzer.PomAnalyzer;
+import com.devonfw.application.analyzer.PomAnalyzerUtils;
 import com.devonfw.application.model.BlacklistEntry;
 import com.devonfw.application.model.ReflectionUsageEntry;
 import org.apache.velocity.Template;
@@ -40,8 +40,8 @@ public class ReportGenerator {
         //Insert dynamic values
         context.put("blacklist", blacklist.iterator());
         context.put("reflectionUsageList", reflectionUsage.iterator());
-        context.put("projectName", PomAnalyzer.getNameAndVersionFromProject(inputProject));
-        context.put("javaVersion", PomAnalyzer.getJavaVersionFromProject(inputProject));
+        context.put("projectName", PomAnalyzerUtils.getNameAndVersionFromProject(inputProject));
+        context.put("javaVersion", PomAnalyzerUtils.getJavaVersionFromProject(inputProject));
 
         //Merge template
         StringWriter sw = new StringWriter();

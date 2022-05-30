@@ -11,14 +11,14 @@ import org.xml.sax.helpers.DefaultHandler;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-public class PomAnalyzer {
+/**
+ * Utilities for analyzing the maven project object model
+ */
+public class PomAnalyzerUtils {
 
     /**
      * Collects java version from a maven project
