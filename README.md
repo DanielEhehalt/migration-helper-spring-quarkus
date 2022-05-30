@@ -18,10 +18,10 @@ This migration helper analyzes Spring Boot projects in terms of migration capabi
 ## Run
 
 **Windows:** \
-`target\appassembler\bin\app.bat -f [filepath]`
+`target\appassembler\bin\app.bat -f [projectLocation] -m [mavenRepoLocation]`
 
 **Linux:** \
-`./target/appassembler/bin/app -f [filepath]`
+`./target/appassembler/bin/app -f [projectLocation] -m [mavenRepoLocation]`
 
 ## Options
 ```
