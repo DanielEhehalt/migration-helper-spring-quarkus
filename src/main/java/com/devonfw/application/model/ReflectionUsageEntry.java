@@ -1,31 +1,33 @@
 package com.devonfw.application.model;
 
+import java.util.List;
+
 /**
  * Model for entries of the reflection usage list
  */
 public class ReflectionUsageEntry {
 
-    private String nameOfClass;
-    private String nameOfPackage;
+    private String path;
+    private List<String> classes;
 
-    public ReflectionUsageEntry(String nameOfClass, String nameOfPackage) {
-        this.nameOfClass = nameOfClass;
-        this.nameOfPackage = nameOfPackage;
+    public ReflectionUsageEntry(String path, List<String> classes) {
+        this.path = path;
+        this.classes = classes;
     }
 
-    public String getNameOfClass() {
-        return nameOfClass;
+    public String getPath() {
+        return path;
     }
 
-    public void setNameOfClass(String nameOfClass) {
-        this.nameOfClass = nameOfClass;
+    public void setPath(String path) {
+        this.path = path;
     }
 
-    public String getNameOfPackage() {
-        return nameOfPackage;
+    public List<String> getClasses() {
+        return classes;
     }
 
-    public void setNameOfPackage(String nameOfPackage) {
-        this.nameOfPackage = nameOfPackage;
+    public void setClasses(List<String> classes) {
+        this.classes = classes;
     }
 }

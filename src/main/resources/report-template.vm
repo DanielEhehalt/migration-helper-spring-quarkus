@@ -5,10 +5,9 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 </head>
 <body>
-    <h1>Migration Helper Spring Quarkus</h1>
-    <h2>Report for project: $projectName</h2>
-    <h2>Java version: $javaVersion. Quarkus minimum is Java 11</h2>
-    <h2>Blacklist</h2>
+    <h1>Report for project: $projectName</h1>
+    <strong>Java version: $javaVersion. Quarkus minimum is Java 11</strong>
+    <h2>Blacklist (size: $blacklistSize)</h2>
     <table>
         <tr>
             <th>Name</th>
@@ -23,18 +22,49 @@
         </tr>
         #end
     </table>
-    <h2>Reflection Usage</h2>
-        <table>
-            <tr>
-                <th>Class</th>
-                <th>Package</th>
-            </tr>
-            #foreach( $reflectionUsage in $reflectionUsageList )
-            <tr>
-                <td>$reflectionUsage.nameOfClass</td>
-                <td>$reflectionUsage.nameOfPackage</td>
-            </tr>
+    <h2>Reflection usage in project (found: $reflectionUsageInProjectListSize)</h2>
+    <table>
+        <tr>
+            <th>Class</th>
+            <th>Path</th>
+        </tr>
+        #foreach( $reflectionUsage in $reflectionUsageInProjectList )
+        <tr>
+            <td>$reflectionUsage.classes.get(0)</td>
+            <td>$reflectionUsage.path</td>
+        </tr>
+        #end
+    </table>
+    <h2>Reflection usage in dependencies (found: $reflectionUsageInDependenciesListSize)</h2>
+    <table>
+        <tr>
+            <th>Dependency</th>
+            <th>Classes</th>
+        </tr>
+        #foreach( $reflectionUsage in $reflectionUsageInDependenciesList )
+        <tr>
+            <td>$reflectionUsage.path</td>
+            #foreach( $class in $reflectionUsage.classes )
+            <td>$class</td>
             #end
-        </table>
+        </tr>
+        #end
+    </table>
+    <h2>Analysis Failures (found: $analysisFailuresListSize)</h2>
+    <p>To ensure the stability of the execution of the analysis, exceptions are just collected and displayed below. For a more detailed analysis the use of the --verbose argument is recommended.</p>
+    <table>
+        <tr>
+            <th>Filename</th>
+            <th>Path</th>
+            <th>Description</th>
+        </tr>
+        #foreach( $analysisFailure in $analysisFailuresList )
+        <tr>
+            <td>$analysisFailure.filename</td>
+            <td>$analysisFailure.path</td>
+            <td>$analysisFailure.description</td>
+        </tr>
+        #end
+    </table>
 </body>
 </html>

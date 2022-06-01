@@ -1,6 +1,6 @@
 # Migration Helper Spring Quarkus
 
-This migration helper analyzes Spring Boot projects in terms of migration capability to Quarkus. After various analyses, a decision aid is created that estimates the effort and identifies tasks. Currently only Maven is supported as build tool.
+This migration helper analyzes Spring Boot projects in terms of migration capability to Quarkus. After various analyses, a decision aid is created that estimates the effort and identifies tasks. Currently, only Maven is supported as build tool.
 
 ## Prerequisites
 
@@ -18,14 +18,17 @@ This migration helper analyzes Spring Boot projects in terms of migration capabi
 ## Run
 
 **Windows:** \
-`target\appassembler\bin\app.bat -f [projectLocation] -m [mavenRepoLocation]`
+`target\appassembler\bin\app.bat -p [projectLocation] -a [appEntryPoint] -m [mavenRepoLocation]`
 
 **Linux:** \
-`./target/appassembler/bin/app -f [projectLocation] -m [mavenRepoLocation]`
+`./target/appassembler/bin/app -p [projectLocation] -a [appEntryPoint] -m [mavenRepoLocation]`
 
 ## Options
 ```
--f --file       jar or war file location
--m --mavenRepo  maven repository location
--h --help       display help
+-p --project                Maven project location
+-a --app                    Application entry point location (@SpringBootApplication)
+-m --mavenRepo              Maven repository location
+-w --withoutDependencies    Without analysis of the reflection usage of the dependencies. This analysis can take a very long time
+-v --verbose                Enable debug logging
+-h --help                   Display help
 ```

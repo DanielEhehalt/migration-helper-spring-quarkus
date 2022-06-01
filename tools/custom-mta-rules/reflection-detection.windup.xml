@@ -10,7 +10,7 @@
             <addon id="org.jboss.windup.rules,windup-rules-java,3.0.0.Final" />
             <addon id="org.jboss.windup.rules,windup-rules-xml,3.0.0.Final" />
         </dependencies>
-        <targetTechnology id="quarkus" />
+        <targetTechnology id="reflection" />
     </metadata>
     <rules>
 		<rule id="reflection-detection-0000">

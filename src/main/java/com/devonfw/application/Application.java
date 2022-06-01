@@ -1,18 +1,20 @@
 package com.devonfw.application;
 
-import com.devonfw.application.analyzer.ProjectAnalyzerUtils;
+import com.devonfw.application.analyzer.ProjectAnalyzer;
+import com.devonfw.application.collector.BlacklistCollector;
+import com.devonfw.application.collector.ReflectionUsageCollector;
 import com.devonfw.application.model.BlacklistEntry;
 import com.devonfw.application.model.ReflectionUsageEntry;
-import com.devonfw.application.utils.CommandLineUtils;
-import com.devonfw.application.utils.MTAExecutor;
-import com.devonfw.application.utils.ReportGenerator;
-import com.devonfw.application.utils.Utils;
+import com.devonfw.application.util.*;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import java.io.File;
-import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 
 /**
@@ -29,11 +31,20 @@ public class Application implements Runnable {
     @CommandLine.Option(names = {"-h", "--help"}, defaultValue = "false", description = "Help")
     private Boolean help;
 
-    @CommandLine.Option(names = {"-f", "--file"}, description = "Filepath")
+    @CommandLine.Option(names = {"-p", "--project"}, description = "Project location")
     private String inputProject;
+
+    @CommandLine.Option(names = {"-a", "--app"}, description = "Application entry point location (@SpringBootApplication)")
+    private String app;
 
     @CommandLine.Option(names = {"-m", "--mavenRepo"}, description = "Maven repository location")
     private String mavenRepo;
+
+    @CommandLine.Option(names = {"-w", "--withoutDependencies"}, defaultValue = "false", description = "Without analysis of the reflection usage of the dependencies")
+    private Boolean withoutReflectionUsageOfDependencies;
+
+    @CommandLine.Option(names = {"-v", "--verbose"}, defaultValue = "false", description = "Enable debug logging")
+    private Boolean debugLoggingEnabled;
 
     /**
      * Main method. Initiates CLI
@@ -55,72 +66,88 @@ public class Application implements Runnable {
             System.exit(0);
         }
 
+        //Set log level
+        org.apache.logging.log4j.Logger logger = LogManager.getRootLogger();
+        if (debugLoggingEnabled) {
+            Configurator.setAllLevels(logger.getName(), Level.DEBUG);
+        } else {
+            Configurator.setAllLevels(logger.getName(), Level.INFO);
+        }
+
         //Execute analysis
-        else if (!inputProject.equals("") || !mavenRepo.equals("")) {
-            //Check if locations exists
+        if (!inputProject.equals("") || !mavenRepo.equals("") || !app.equals("")) {
             File inputProjectLocation = new File(this.inputProject);
-            File mavenRepoLocation = new File(mavenRepo);
-            if (!inputProjectLocation.exists()) {
-                System.out.println("Error: Project does not exist");
-                System.exit(1);
-            } else if (!mavenRepoLocation.exists()) {
-                System.out.println("Error: Maven Repository location does not exist");
-                System.exit(2);
-            }
+            File mavenRepoLocation = new File(this.mavenRepo);
+            File applicationEntryPoint = new File(this.app);
+            File projectPom = new File(this.inputProject + "\\pom.xml");
+
+            checkIfFilesExist(inputProjectLocation, mavenRepoLocation, applicationEntryPoint, projectPom);
 
             //Create directory for results
-            String resultPath = Utils.createDirectoryForResults();
+            String resultPath = createDirectoryForResults();
 
-            System.out.println("Start the analysis");
-            System.out.println("Filepath: " + this.inputProject);
-            System.out.println("Result folder: " + resultPath);
+            LOG.info("Start the analysis");
+            LOG.info("Filepath: " + inputProjectLocation);
+            LOG.info("Result folder: " + resultPath);
 
-            //Execute MTA
-            boolean execution = MTAExecutor.executeMTA(this.inputProject, resultPath);
+            //Step 1: Project analysis: Generates list of blacklisted packages and of the reflection usage in the project
+            boolean execution = MtaExecutor.executeMtaForProject(inputProjectLocation.toString(), resultPath);
+            List<List<String>> csvOutput = CsvParser.parseCSV(resultPath);
+            List<BlacklistEntry> blacklist = BlacklistCollector.generateBlacklist(csvOutput);
+            List<ReflectionUsageEntry> reflectionUsageInProject = ReflectionUsageCollector.generateReflectionUsageList(csvOutput);
 
-            //Generate list of blacklisted packages
-            List<List<String>> csvOutput = Utils.parseCSV(resultPath);
-            List<BlacklistEntry> blacklist = Utils.generateBlacklist(csvOutput);
-            List<ReflectionUsageEntry> reflectionUsage = Utils.generateReflectionUsageList(csvOutput);
+            //Step 2: Usage of blacklisted packages
+            List<String> libraries = ProjectAnalyzer.collectAllLibrariesOfProject(applicationEntryPoint.toPath(), inputProjectLocation, mavenRepoLocation);
+            File entryPoint = new File(applicationEntryPoint.getParent());
+            HashMap<String, Integer> imports = ProjectAnalyzer.collectImportStatementsFromAllClasses(entryPoint, new HashMap<>());
+            //ToDo: Map occurrence with libraries
 
-            //Analyse usage of blacklisted packages
-            //TODO: Analyse usage of blacklisted packages
+            //Step 3: Reflection usage in the project dependencies
+            List<ReflectionUsageEntry> reflectionUsageInDependencies = new ArrayList<>();
+            if (!withoutReflectionUsageOfDependencies) {
+                reflectionUsageInDependencies = ReflectionUsageCollector.collectReflectionUsageInDependencies(libraries, resultPath);
+            }
 
             //Generate report
-            ReportGenerator.generateReport(blacklist, reflectionUsage, Path.of(this.inputProject), resultPath);
-
-            //Examples
-            File entryPoint = new File(this.inputProject + "\\src\\main\\java");
-
-//            HashMap<String, Integer> packages = Analyzer.collectPackagesRecursively(entryPoint, Path.of(this.inputProject), Path.of(mavenRepo), new HashMap<>());
-//            System.out.println("############################## PACKAGES ##############################");
-//            sortMapByQuantityAndPrintContent(packages);
-//
-//            HashMap<String, Integer> classes = Analyzer.collectClassesRecursively(entryPoint, Path.of(this.inputProject), Path.of(mavenRepo), new HashMap<>());
-//            System.out.println("############################## CLASSES ##############################");
-//            sortMapByQuantityAndPrintContent(classes);
-//
-            HashMap<String, Integer> imports = ProjectAnalyzerUtils.collectImportsRecursively(entryPoint, new HashMap<>());
-            System.out.println("############################## IMPORTS ##############################");
-            sortMapByQuantityAndPrintContent(imports);
-
-            System.out.println("############################## DEPENDENCIES ##############################");
-            List<String> libraries = ProjectAnalyzerUtils.collectAllLibrariesRecursively(entryPoint, Path.of(this.inputProject), Path.of(mavenRepo), new ArrayList<>());
-            HashMap<String, List<String>> allClassesOfAllLibraries = ProjectAnalyzerUtils.getAllClassesOfAllLibraries(libraries);
-            HashMap<String, List<String>> mapOfImportStatementsAndPossibleProviderLibraries = ProjectAnalyzerUtils.mapImportStatementsToLibraries(new ArrayList<>(imports.keySet()), allClassesOfAllLibraries);
-            mapOfImportStatementsAndPossibleProviderLibraries.forEach((key, value) -> System.out.println(key + " " + Arrays.toString(value.toArray())));
-
-            //Exit
+            ReportGenerator.generateReport(blacklist, reflectionUsageInProject, reflectionUsageInDependencies, inputProjectLocation.toString(), resultPath);
             System.exit(0);
         } else {
-            System.out.println("Arguments -f and -m are mandatory");
+            LOG.error("Arguments -p, -a and -m are mandatory");
             System.exit(255);
         }
     }
 
-    public static void sortMapByQuantityAndPrintContent(HashMap<String, Integer> map) {
-        map.entrySet().stream()
-                .sorted((key1, key2) -> -key1.getValue().compareTo(key2.getValue()))
-                .forEach(key -> System.out.println(key.getKey() + ": " + key.getValue()));
+    /**
+     * Check if locations exist
+     */
+    private void checkIfFilesExist(File inputProjectLocation, File mavenRepoLocation, File applicationEntryPoint, File projectPom) {
+
+        if (!inputProjectLocation.exists()) {
+            LOG.error("Project does not exist");
+            System.exit(1);
+        } else if (!mavenRepoLocation.exists()) {
+            LOG.error("Maven Repository location does not exist");
+            System.exit(2);
+        } else if (!applicationEntryPoint.exists()) {
+            LOG.error("SpringBootApplication file does not exist");
+            System.exit(3);
+        } else if (!projectPom.exists()) {
+            LOG.error("Can not found project POM in: " + projectPom);
+            System.exit(4);
+        }
+    }
+
+    /**
+     * Create directory for results
+     *
+     * @return Path to directory
+     */
+    private String createDirectoryForResults() {
+
+        Instant instant = Instant.now();
+        long timeStampMillis = instant.toEpochMilli();
+        String resultPath = System.getProperty("user.dir") + "\\results\\" + timeStampMillis;
+        boolean mkdir = new File(resultPath).mkdirs();
+        return resultPath;
     }
 }
