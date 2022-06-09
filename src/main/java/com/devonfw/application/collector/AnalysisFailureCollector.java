@@ -10,10 +10,15 @@ import java.util.List;
  */
 public class AnalysisFailureCollector {
 
-    public static List<AnalysisFailureEntry> analysisFailures = new ArrayList<>();
+    private static List<AnalysisFailureEntry> analysisFailures = new ArrayList<>();
 
     public static void addAnalysisFailure(AnalysisFailureEntry analysisFailure) {
 
         analysisFailures.add(analysisFailure);
+    }
+
+    public static List<AnalysisFailureEntry> getAnalysisFailures() {
+
+        return analysisFailures;
     }
 }

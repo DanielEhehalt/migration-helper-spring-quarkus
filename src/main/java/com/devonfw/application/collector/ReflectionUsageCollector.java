@@ -3,6 +3,7 @@ package com.devonfw.application.collector;
 import com.devonfw.application.model.ReflectionUsageEntry;
 import com.devonfw.application.util.CsvParser;
 import com.devonfw.application.util.MtaExecutor;
+import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,11 +60,11 @@ public class ReflectionUsageCollector {
      * @param resultPath Path for analysis results
      * @return Reflection usage of the specified libraries
      */
-    public static List<ReflectionUsageEntry> collectReflectionUsageInDependencies(List<String> libraries, String resultPath) {
+    public static List<ReflectionUsageEntry> collectReflectionUsageInLibraries(List<Artifact> libraries, String resultPath) {
 
         List<ReflectionUsageEntry> reflectionUsage = new ArrayList<>();
         libraries.forEach(library -> {
-            boolean execution = MtaExecutor.executeMtaToFindReflectionInLibrary(library, resultPath);
+            boolean execution = MtaExecutor.executeMtaToFindReflectionInLibrary(library.getFile().toString(), resultPath);
             List<List<String>> csvOutput = CsvParser.parseCSV(resultPath);
             List<ReflectionUsageEntry> temp = generateReflectionUsageList(csvOutput);
             reflectionUsage.addAll(temp);

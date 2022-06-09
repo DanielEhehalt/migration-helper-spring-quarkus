@@ -65,9 +65,10 @@ public class CsvParser {
             FileUtils.cleanDirectory(new File(resultPath));
 
         } catch (IOException e) {
+            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry("", "The directory could not be cleaned after parsing the CSV file. This could lead to the interference of further analysis."));
             LOG.debug("Could not clean directory after parsing", e);
         } catch (CsvValidationException e) {
-            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry("", "", "Not all csv entries could be parsed"));
+            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry("", "Not all csv entries could be parsed"));
             LOG.debug("Could not read entry of csv file", e);
         }
 

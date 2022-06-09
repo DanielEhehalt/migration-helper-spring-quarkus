@@ -5,30 +5,20 @@ package com.devonfw.application.model;
  */
 public class AnalysisFailureEntry {
 
-    private String filename;
-    private String path;
+    private String name;
     private String description;
 
-    public AnalysisFailureEntry(String filename, String path, String description) {
-        this.filename = filename;
-        this.path = path;
+    public AnalysisFailureEntry(String name, String description) {
+        this.name = name;
         this.description = description;
     }
 
-    public String getFilename() {
-        return filename;
+    public String getName() {
+        return name;
     }
 
-    public void setFilename(String filename) {
-        this.filename = filename;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {

@@ -54,8 +54,8 @@ public class ReportGenerator {
         context.put("reflectionUsageInProjectListSize", reflectionUsageInProject.size());
         context.put("reflectionUsageInDependenciesList", reflectionUsageInDependencies.iterator());
         context.put("reflectionUsageInDependenciesListSize", reflectionUsageInDependencies.size());
-        context.put("analysisFailuresList", AnalysisFailureCollector.analysisFailures);
-        context.put("analysisFailuresListSize", AnalysisFailureCollector.analysisFailures.size());
+        context.put("analysisFailuresList", AnalysisFailureCollector.getAnalysisFailures());
+        context.put("analysisFailuresListSize", AnalysisFailureCollector.getAnalysisFailures().size());
 
         //Merge template
         StringWriter sw = new StringWriter();

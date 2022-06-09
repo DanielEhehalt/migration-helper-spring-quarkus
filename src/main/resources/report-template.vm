@@ -10,14 +10,27 @@
     <h2>Blacklist (size: $blacklistSize)</h2>
     <table>
         <tr>
-            <th>Name</th>
-            <th>Package</th>
+            <th>ID</th>
+            <th>GroupId</th>
+            <th>ArtifactId</th>
+            <th>Packages</th>
             <th>Description</th>
         </tr>
         #foreach( $blacklistEntry in $blacklist )
         <tr>
-            <td>$blacklistEntry.ruleId</td>
-            <td>$blacklistEntry.nameOfPackage</td>
+            <td>$blacklistEntry.mtaRuleId</td>
+            #if( ${blacklistEntry.mavenIdentifiers.getTotal()} > 0 )
+                <td>$blacklistEntry.mavenIdentifiers.get(0).groupId</td>
+                <td>$blacklistEntry.mavenIdentifiers.get(0).artifactId</td>
+            #else
+                <td></td>
+                <td></td>
+            #end
+            #if( ${blacklistEntry.packages.getTotal()} > 0 )
+                <td>$blacklistEntry.packages.get(0)</td>
+            #else
+                <td></td>
+            #end
             <td>$blacklistEntry.description</td>
         </tr>
         #end
@@ -51,17 +64,15 @@
         #end
     </table>
     <h2>Analysis Failures (found: $analysisFailuresListSize)</h2>
-    <p>To ensure the stability of the execution of the analysis, exceptions are just collected and displayed below. For a more detailed analysis the use of the --verbose argument is recommended.</p>
+    <p>To ensure the stability of the execution of the analysis, exceptions are just collected and displayed below. For a more detailed failure analysis the use of the --verbose argument is recommended.</p>
     <table>
         <tr>
-            <th>Filename</th>
-            <th>Path</th>
+            <th>Name</th>
             <th>Description</th>
         </tr>
         #foreach( $analysisFailure in $analysisFailuresList )
         <tr>
-            <td>$analysisFailure.filename</td>
-            <td>$analysisFailure.path</td>
+            <td>$analysisFailure.name</td>
             <td>$analysisFailure.description</td>
         </tr>
         #end

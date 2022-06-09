@@ -1,24 +1,48 @@
 package com.devonfw.application.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Model for Blacklist entries
  */
 public class BlacklistEntry {
-    private String ruleId;
+
+    private String mtaRuleId;
+    private List<MavenIdentifier> mavenIdentifiers;
+    private List<String> packages;
     private String description;
-    private String nameOfPackage;
 
-    public BlacklistEntry(String ruleId, String description) {
-        this.ruleId = ruleId;
+    public BlacklistEntry(String mtaRuleId, String description) {
+
+        this.mtaRuleId = mtaRuleId;
         this.description = description;
+        this.mavenIdentifiers = new ArrayList<>();
+        this.packages = new ArrayList<>();
     }
 
-    public String getRuleId() {
-        return ruleId;
+    public String getMtaRuleId() {
+        return mtaRuleId;
     }
 
-    public void setRuleId(String ruleId) {
-        this.ruleId = ruleId;
+    public void setMtaRuleId(String mtaRuleId) {
+        this.mtaRuleId = mtaRuleId;
+    }
+
+    public List<MavenIdentifier> getMavenIdentifiers() {
+        return mavenIdentifiers;
+    }
+
+    public void setMavenIdentifiers(List<MavenIdentifier> mavenIdentifiers) {
+        this.mavenIdentifiers = mavenIdentifiers;
+    }
+
+    public List<String> getPackages() {
+        return packages;
+    }
+
+    public void setPackages(List<String> packages) {
+        this.packages = packages;
     }
 
     public String getDescription() {
@@ -27,13 +51,5 @@ public class BlacklistEntry {
 
     public void setDescription(String description) {
         this.description = description;
-    }
-
-    public String getNameOfPackage() {
-        return nameOfPackage;
-    }
-
-    public void setNameOfPackage(String nameOfPackage) {
-        this.nameOfPackage = nameOfPackage;
     }
 }

@@ -20,11 +20,11 @@ public class MtaExecutor {
      * Runs the Red Hat Migration Toolkit for Applications (MTA) to find incompatible dependencies.
      * The result of the analysis is temporarily saved in the results folder
      *
-     * @param filepath Path to the jar/ war file which should be analyzed
+     * @param projectLocation Path to the jar/ war file which should be analyzed
      * @param resultPath Path to the directory where the results will be saved
      * @return If execution was successful
      */
-    public static boolean executeMtaForProject(String filepath, String resultPath) {
+    public static boolean executeMtaForProject(String projectLocation, String resultPath) {
 
         boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
 
@@ -33,9 +33,9 @@ public class MtaExecutor {
         builder.directory(new File(System.getProperty("user.dir")));
 
         if (isWindows) {
-            builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", filepath, "--output", resultPath, "--target", "quarkus", "--target", "reflection", "--exportCSV", "--batchMode", "--skipReports", "--sourceMode", "--userRulesDirectory", "tools\\custom-mta-rules");
+            builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", projectLocation, "--output", resultPath, "--target", "quarkus", "--target", "reflection", "--exportCSV", "--batchMode", "--skipReports", "--sourceMode", "--userRulesDirectory", "tools\\custom-mta-rules");
         } else {
-            builder.command("./tools/mta-cli-5.2.1/bin/mta-cli", "--input", filepath, "--output", resultPath, "--target", "quarkus", "--exportCSV", "--batchMode");
+            builder.command("./tools/mta-cli-5.2.1/bin/mta-cli", "--input", projectLocation, "--output", resultPath, "--target", "quarkus", "--exportCSV", "--batchMode");
         }
 
         try {
@@ -44,8 +44,8 @@ public class MtaExecutor {
             Process process = builder.start();
 
             //Log script output
-            StreamParser streamParser = new StreamParser(process.getInputStream(), LOG::debug);
-            Executors.newSingleThreadExecutor().submit(streamParser);
+            ScriptOutputStreamParser scriptOutputStreamParser = new ScriptOutputStreamParser(process.getInputStream(), LOG::debug);
+            Executors.newSingleThreadExecutor().submit(scriptOutputStreamParser);
 
             //Waiting for successful end of execution
             int exitCode = process.waitFor();
@@ -57,43 +57,43 @@ public class MtaExecutor {
         }
     }
 
-    public static boolean executeMtaToFindReflectionInLibrary(String filepath, String resultPath) {
+    public static boolean executeMtaToFindReflectionInLibrary(String projectLocation, String resultPath) {
 
         ProcessBuilder builder = new ProcessBuilder();
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
 
-        builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", filepath, "--output", resultPath, "--target", "reflection", "--exportCSV", "--batchMode", "--skipReports", "--userRulesDirectory", "tools\\custom-mta-rules");
+        builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", projectLocation, "--output", resultPath, "--target", "reflection", "--exportCSV", "--batchMode", "--skipReports", "--userRulesDirectory", "tools\\custom-mta-rules");
 
         try {
             //Start script
-            LOG.info("Analyze reflection usage in project dependency: " + filepath);
+            LOG.info("Analyze reflection usage in project dependency: " + projectLocation);
             Process process = builder.start();
 
             //Log script output
-            StreamParser streamParser = new StreamParser(process.getInputStream(), LOG::debug);
-            Executors.newSingleThreadExecutor().submit(streamParser);
+            ScriptOutputStreamParser scriptOutputStreamParser = new ScriptOutputStreamParser(process.getInputStream(), LOG::debug);
+            Executors.newSingleThreadExecutor().submit(scriptOutputStreamParser);
 
             //Waiting for successful end of execution
             int exitCode = process.waitFor();
             assert exitCode == 0;
             return true;
         } catch (IOException | InterruptedException e) {
-            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(filepath, "", "MTA reflection analysis failed."));
+            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(projectLocation, "MTA reflection analysis failed."));
             LOG.debug("MTA reflection analysis failed.", e);
             return false;
         }
     }
 
     /**
-     * Inner class for processing script output
+     * Processing output of a script execution
      */
-    private static class StreamParser implements Runnable {
+    static class ScriptOutputStreamParser implements Runnable {
 
         private final InputStream inputStream;
         private final Consumer<String> consumer;
 
-        public StreamParser(InputStream inputStream, Consumer<String> consumer) {
+        public ScriptOutputStreamParser(InputStream inputStream, Consumer<String> consumer) {
 
             this.inputStream = inputStream;
             this.consumer = consumer;

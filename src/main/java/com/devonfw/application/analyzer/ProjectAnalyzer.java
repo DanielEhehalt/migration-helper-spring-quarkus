@@ -4,16 +4,10 @@ import com.devonfw.application.collector.AnalysisFailureCollector;
 import com.devonfw.application.model.AnalysisFailureEntry;
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaSource;
-import net.sf.mmm.code.impl.java.JavaContext;
-import net.sf.mmm.code.impl.java.source.maven.JavaSourceProviderUsingMaven;
-import net.sf.mmm.code.impl.java.source.maven.MavenDependencyCollector;
-import net.sf.mmm.code.java.maven.impl.MavenBridgeImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.URL;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -24,79 +18,6 @@ import java.util.zip.ZipInputStream;
 public class ProjectAnalyzer {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProjectAnalyzer.class);
-
-    /**
-     * Collects all libraries of the project
-     *
-     * @param springBootApp Location of the application entry point
-     * @param inputProject  Input project where the input file is located
-     * @param mavenRepo     Path of the maven repository. Necessary to load the libraries of the project
-     * @return List with all libraries of the project
-     */
-    public static List<String> collectAllLibrariesOfProject(Path springBootApp, File inputProject, File mavenRepo) {
-
-        List<String> results = new ArrayList<>();
-
-        //Build Java context from file and project
-        MavenDependencyCollector dependencyCollector = new MavenDependencyCollector(new MavenBridgeImpl(mavenRepo), false, true, null);
-        JavaContext context = JavaSourceProviderUsingMaven.createFromLocalMavenProject(inputProject, dependencyCollector);
-        String fqnOfClass = getFQN(springBootApp);
-        try {
-            context.getClassLoader().loadClass(fqnOfClass);
-        } catch (ClassNotFoundException e) {
-            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(fqnOfClass, "", "Could not load class. ClassNotFoundException was thrown."));
-            LOG.debug("Could not find class", e);
-        }
-
-        URL[] urls = dependencyCollector.asUrls();
-        for (URL url : urls) {
-            String urlWithoutType = url.toString().substring(6);
-            if (urlWithoutType.endsWith(".jar")) {
-                results.add(urlWithoutType);
-            }
-        }
-        return results;
-    }
-
-    /**
-     * This method is traversing parent folders until it reaches java folder in order to get the FQN
-     *
-     * @param inputFile Java input file to retrieve FQN (Full Qualified Name)
-     * @return qualified name with full package
-     */
-    public static String getFQN(Path inputFile) {
-
-        String simpleName = inputFile.getFileName().toString().replaceAll("\\.(?i)java", "");
-        String packageName = getPackageName(inputFile.getParent(), "");
-
-        return packageName + "." + simpleName;
-    }
-
-    /**
-     * This method traverse the folder in reverse order from child to parent
-     *
-     * @param folder      parent input file
-     * @param packageName the package name
-     * @return package name
-     */
-    private static String getPackageName(Path folder, String packageName) {
-
-        if (folder == null) {
-            return null;
-        }
-
-        if (folder.getFileName().toString().toLowerCase().equals("java")) {
-            String[] pkgs = packageName.split("\\.");
-
-            packageName = pkgs[pkgs.length - 1];
-            // Reverse order as we have traversed folders from child to parent
-            for (int i = pkgs.length - 2; i > 0; i--) {
-                packageName = packageName + "." + pkgs[i];
-            }
-            return packageName;
-        }
-        return getPackageName(folder.getParent(), packageName + "." + folder.getFileName().toString());
-    }
 
     /**
      * Generates HashMap with the location of the library as key and all classes of the dependency as value
@@ -128,7 +49,7 @@ public class ProjectAnalyzer {
                     }
                 }
             } catch (IOException e) {
-                AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(library, "", "Could not find jar archive. IOException was thrown"));
+                AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(library, "Could not find jar archive. IOException was thrown"));
                 LOG.debug("Could not find jar archive", e);
             }
         }
@@ -199,7 +120,7 @@ public class ProjectAnalyzer {
         try {
             builder.addSource(new FileReader(file));
         } catch (FileNotFoundException e) {
-            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(file.toString(), "", "Can not collect import statements from file " + file + " FileNotFoundException was thrown."));
+            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(file.toString(), "Can not collect import statements from file " + file + " FileNotFoundException was thrown."));
             LOG.debug("Can not collect import statements from file" + file, e);
         }
         Collection<JavaSource> sources = builder.getSources();
