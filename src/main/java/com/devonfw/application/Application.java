@@ -100,12 +100,6 @@ public class Application implements Runnable {
             List<DependencyNode> dependencyNodes = PomAnalyzer.generateDependencyTree(mmmFoundArtifacts, projectPom, mavenRepoLocation);
             List<Artifact> allArtifactsAfterTreeBuilding = PomAnalyzer.generateArtifactsList(dependencyNodes, mavenRepoLocation);
 
-            try {
-                PomAnalyzer.tryFindJarInLocalMavenRepo(allArtifactsAfterTreeBuilding.get(2), mavenRepoLocation);
-            } catch (ArtifactResolutionException e) {
-                e.printStackTrace();
-            }
-
             // Step 1: Project analysis: Generates list of blacklisted packages and of the reflection usage in the project
             boolean execution = MtaExecutor.executeMtaForProject(inputProjectLocation.toString(), resultPath);
             List<List<String>> csvOutput = CsvParser.parseCSV(resultPath);
