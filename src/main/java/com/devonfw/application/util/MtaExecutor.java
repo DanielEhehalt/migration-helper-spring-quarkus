@@ -57,17 +57,17 @@ public class MtaExecutor {
         }
     }
 
-    public static boolean executeMtaToFindReflectionInLibrary(String projectLocation, String resultPath) {
+    public static boolean executeMtaToFindReflectionInLibrary(String libraryLocation, String resultPath) {
 
         ProcessBuilder builder = new ProcessBuilder();
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
 
-        builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", projectLocation, "--output", resultPath, "--target", "reflection", "--exportCSV", "--batchMode", "--skipReports", "--userRulesDirectory", "tools\\custom-mta-rules");
+        builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", libraryLocation, "--output", resultPath, "--target", "reflection", "--exportCSV", "--batchMode", "--skipReports", "--userRulesDirectory", "tools\\custom-mta-rules");
 
         try {
             //Start script
-            LOG.info("Analyze reflection usage in project dependency: " + projectLocation);
+            LOG.info("Analyze reflection usage in project dependency: " + libraryLocation);
             Process process = builder.start();
 
             //Log script output
@@ -79,7 +79,7 @@ public class MtaExecutor {
             assert exitCode == 0;
             return true;
         } catch (IOException | InterruptedException e) {
-            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(projectLocation, "MTA reflection analysis failed."));
+            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(libraryLocation, "MTA reflection analysis failed."));
             LOG.debug("MTA reflection analysis failed.", e);
             return false;
         }

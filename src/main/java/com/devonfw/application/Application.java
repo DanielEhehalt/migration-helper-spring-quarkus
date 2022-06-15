@@ -5,13 +5,15 @@ import com.devonfw.application.analyzer.ProjectAnalyzer;
 import com.devonfw.application.collector.BlacklistCollector;
 import com.devonfw.application.collector.ReflectionUsageCollector;
 import com.devonfw.application.model.BlacklistEntry;
-import com.devonfw.application.model.ReflectionUsageEntry;
+import com.devonfw.application.model.ReflectionUsageInDependencies;
+import com.devonfw.application.model.ReflectionUsageInProject;
 import com.devonfw.application.util.*;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.DependencyNode;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -90,18 +92,25 @@ public class Application implements Runnable {
             String resultPath = createDirectoryForResults();
 
             LOG.info("Start the analysis");
-            LOG.info("Filepath: " + inputProjectLocation);
+            LOG.info("Project location: " + inputProjectLocation);
             LOG.info("Result folder: " + resultPath);
 
             //Initialization
-            List<DependencyNode> dependencyNodes = PomAnalyzer.generateDependencyTree(projectPom, mavenRepoLocation);
-            List<Artifact> allArtifactsOfProject = PomAnalyzer.generateArtifactsList(dependencyNodes, mavenRepoLocation);
+            List<Artifact> mmmFoundArtifacts = PomAnalyzer.collectAllLibrariesOfProject(applicationEntryPoint.toPath(), new File(inputProject), mavenRepoLocation);
+            List<DependencyNode> dependencyNodes = PomAnalyzer.generateDependencyTree(mmmFoundArtifacts, projectPom, mavenRepoLocation);
+            List<Artifact> allArtifactsAfterTreeBuilding = PomAnalyzer.generateArtifactsList(dependencyNodes, mavenRepoLocation);
+
+            try {
+                PomAnalyzer.tryFindJarInLocalMavenRepo(allArtifactsAfterTreeBuilding.get(2), mavenRepoLocation);
+            } catch (ArtifactResolutionException e) {
+                e.printStackTrace();
+            }
 
             // Step 1: Project analysis: Generates list of blacklisted packages and of the reflection usage in the project
             boolean execution = MtaExecutor.executeMtaForProject(inputProjectLocation.toString(), resultPath);
             List<List<String>> csvOutput = CsvParser.parseCSV(resultPath);
             List<BlacklistEntry> blacklist = BlacklistCollector.generateBlacklist(csvOutput);
-            List<ReflectionUsageEntry> reflectionUsageInProject = ReflectionUsageCollector.generateReflectionUsageList(csvOutput);
+            List<ReflectionUsageInProject> reflectionUsageInProject = ReflectionUsageCollector.generateReflectionUsageInProjectList(csvOutput, inputProjectLocation.toString());
 
             // Step 2: Usage of blacklisted packages
             File entryPoint = new File(applicationEntryPoint.getParent());
@@ -109,13 +118,14 @@ public class Application implements Runnable {
             //ToDo: Map occurrence with libraries
 
             //Step 3: Reflection usage in the project dependencies
-            List<ReflectionUsageEntry> reflectionUsageInDependencies = new ArrayList<>();
+            List<ReflectionUsageInDependencies> reflectionUsageInDependencies = new ArrayList<>();
             if (!withoutReflectionUsageOfDependencies) {
-                reflectionUsageInDependencies = ReflectionUsageCollector.collectReflectionUsageInLibraries(allArtifactsOfProject, resultPath);
+                reflectionUsageInDependencies = ReflectionUsageCollector.collectReflectionUsageInLibraries(allArtifactsAfterTreeBuilding, resultPath);
             }
+            reflectionUsageInDependencies = ReflectionUsageCollector.mapJarFilesToFullArtifactNames(reflectionUsageInDependencies, allArtifactsAfterTreeBuilding);
 
             //Generate report
-            ReportGenerator.generateReport(blacklist, reflectionUsageInProject, reflectionUsageInDependencies, projectPom.toString(), resultPath);
+            ReportGenerator.generateReport(blacklist, reflectionUsageInProject, reflectionUsageInDependencies, dependencyNodes, projectPom.toString(), resultPath);
             System.exit(0);
         } else {
             LOG.error("Arguments -p, -a and -m are mandatory");

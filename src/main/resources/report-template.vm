@@ -7,6 +7,7 @@
 <body>
     <h1>Report for project: $projectName</h1>
     <strong>Java version: $javaVersion. Quarkus minimum is Java 11</strong>
+
     <h2>Blacklist (size: $blacklistSize)</h2>
     <table>
         <tr>
@@ -19,14 +20,14 @@
         #foreach( $blacklistEntry in $blacklist )
         <tr>
             <td>$blacklistEntry.mtaRuleId</td>
-            #if( ${blacklistEntry.mavenIdentifiers.getTotal()} > 0 )
+            #if( ${blacklistEntry.mavenIdentifiers.size()} > 0 )
                 <td>$blacklistEntry.mavenIdentifiers.get(0).groupId</td>
                 <td>$blacklistEntry.mavenIdentifiers.get(0).artifactId</td>
             #else
                 <td></td>
                 <td></td>
             #end
-            #if( ${blacklistEntry.packages.getTotal()} > 0 )
+            #if( ${blacklistEntry.packages.size()} > 0 )
                 <td>$blacklistEntry.packages.get(0)</td>
             #else
                 <td></td>
@@ -35,6 +36,7 @@
         </tr>
         #end
     </table>
+
     <h2>Reflection usage in project (found: $reflectionUsageInProjectListSize)</h2>
     <table>
         <tr>
@@ -43,26 +45,17 @@
         </tr>
         #foreach( $reflectionUsage in $reflectionUsageInProjectList )
         <tr>
-            <td>$reflectionUsage.classes.get(0)</td>
+            <td>$reflectionUsage.className</td>
             <td>$reflectionUsage.path</td>
         </tr>
         #end
     </table>
-    <h2>Reflection usage in dependencies (found: $reflectionUsageInDependenciesListSize)</h2>
-    <table>
-        <tr>
-            <th>Dependency</th>
-            <th>Classes</th>
-        </tr>
-        #foreach( $reflectionUsage in $reflectionUsageInDependenciesList )
-        <tr>
-            <td>$reflectionUsage.path</td>
-            #foreach( $class in $reflectionUsage.classes )
-            <td>$class</td>
-            #end
-        </tr>
-        #end
-    </table>
+
+    <h2>Reflection usage in dependencies as dependency tree (found: $reflectionUsageInDependenciesListSize)</h2>
+    #foreach( $branch in $dependencyTree )
+    <p>$branch</p>
+    #end
+
     <h2>Analysis Failures (found: $analysisFailuresListSize)</h2>
     <p>To ensure the stability of the execution of the analysis, exceptions are just collected and displayed below. For a more detailed failure analysis the use of the --verbose argument is recommended.</p>
     <table>

@@ -17,7 +17,7 @@
 
     <dependencies>
 
-        <!--Code analysis-->
+        <!--Loads external project-->
         <dependency>
             <groupId>net.sf.m-m-m</groupId>
             <artifactId>mmm-code-java-impl</artifactId>

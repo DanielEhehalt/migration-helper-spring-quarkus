@@ -2,6 +2,9 @@ package com.devonfw.application.analyzer;
 
 import com.devonfw.application.collector.AnalysisFailureCollector;
 import com.devonfw.application.model.AnalysisFailureEntry;
+import net.sf.mmm.code.impl.java.JavaContext;
+import net.sf.mmm.code.impl.java.source.maven.JavaSourceProviderUsingMaven;
+import net.sf.mmm.code.impl.java.source.maven.MavenDependencyCollector;
 import net.sf.mmm.code.java.maven.impl.MavenBridgeImpl;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
@@ -31,14 +34,10 @@ import org.eclipse.aether.transport.file.FileTransporterFactory;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.helpers.DefaultHandler;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.parsers.SAXParser;
-import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
+import java.net.URL;
+import java.nio.file.Path;
 import java.util.*;
 
 /**
@@ -57,14 +56,14 @@ public class PomAnalyzer {
     public static String getJavaVersionFromProject(String locationOfProjectPom) {
 
         String javaVersion = "undefined";
+        MavenXpp3Reader reader = new MavenXpp3Reader();
         try {
-            SAXParserFactory saxParserFactory = SAXParserFactory.newDefaultInstance();
-            SAXParser saxParser = saxParserFactory.newSAXParser();
-            PomXmlJavaVersionHandler handler = new PomXmlJavaVersionHandler();
-            File pomFile = new File(locationOfProjectPom);
-            saxParser.parse(pomFile, handler);
-            javaVersion = handler.getJavaVersion();
-        } catch (IOException | ParserConfigurationException | SAXException e) {
+            Model model = reader.read(new FileReader(locationOfProjectPom));
+            String javaVersionProperty = model.getProperties().getProperty("java.version");
+            if (javaVersionProperty != null) {
+                javaVersion = javaVersionProperty;
+            }
+        } catch (IOException | XmlPullParserException e) {
             LOG.error("Could not find java version in pom.xml under project property java.version", e);
         }
         return javaVersion;
@@ -88,6 +87,25 @@ public class PomAnalyzer {
         return "Project name not available";
     }
 
+    public static void getParentVersions(String locationOfProjectPom) {
+
+        MavenXpp3Reader reader = new MavenXpp3Reader();
+        try {
+            Model model = reader.read(new FileReader(locationOfProjectPom));
+            System.out.println(model.getParent().getGroupId() + model.getParent().getVersion());
+
+            for (org.apache.maven.model.Dependency dependency : model.getDependencies()) {
+                System.out.println(dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + dependency.getVersion() + ":" + dependency.getType());
+                if (dependency.getType().equals("pom")) {
+                    System.out.println(dependency.getArtifactId());
+                }
+            }
+        } catch (XmlPullParserException | IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     /**
      * Generates the dependency tree
      *
@@ -95,7 +113,7 @@ public class PomAnalyzer {
      * @param mavenRepoLocation    Location of the local maven repository
      * @return List with one DependencyNode per dependency in the project. Enriched with all children which have the scope compile
      */
-    public static List<DependencyNode> generateDependencyTree(File locationOfProjectPom, File mavenRepoLocation) {
+    public static List<DependencyNode> generateDependencyTree(List<Artifact> allArtifactsOfProject, File locationOfProjectPom, File mavenRepoLocation) {
 
         List<DependencyNode> rootNodes = new ArrayList<>();
 
@@ -104,9 +122,16 @@ public class PomAnalyzer {
 
         for (org.apache.maven.model.Dependency dependency : model.getDependencies()) {
             String version = dependency.getVersion();
+
             if (version == null) {
-                //ToDo: Collect versions which are provided by a bom
-                version = model.getParent().getVersion();
+                Optional<Artifact> localArtifact = allArtifactsOfProject.stream().filter(artifact -> artifact.getGroupId().equals(dependency.getGroupId()) && artifact.getArtifactId().equals(dependency.getArtifactId())).findFirst();
+                if (localArtifact.isPresent()) {
+                    version = localArtifact.get().getVersion();
+                } else {
+                    AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(dependency.getGroupId() + ":" + dependency.getArtifactId(), "Cannot resolve artifact because the version cannot be found out. The remaining branch of the dependency tree cannot be built further for this dependency."));
+                    LOG.debug("Cannot resolve artifact: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + ". The version cannot be found out. The remaining branch of the dependency tree cannot be built further for this dependency.");
+                    continue;
+                }
             }
             DependencyNode rootNode;
             try {
@@ -156,6 +181,79 @@ public class PomAnalyzer {
         return collectResult.getRoot();
     }
 
+    public static List<Artifact> collectAllLibrariesOfProject(Path springBootApp, File inputProject, File mavenRepo) {
+
+        List<Artifact> allLibrariesOfProject = new ArrayList<>();
+
+        //Build Java context from file and project
+        MavenDependencyCollector dependencyCollector = new MavenDependencyCollector(new MavenBridgeImpl(mavenRepo), false, true, null);
+        JavaContext context = JavaSourceProviderUsingMaven.createFromLocalMavenProject(inputProject, dependencyCollector);
+        String fqnOfClass = getFQN(springBootApp);
+        try {
+            context.getClassLoader().loadClass(fqnOfClass);
+        } catch (ClassNotFoundException e) {
+            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(fqnOfClass, "Could not load class. ClassNotFoundException was thrown."));
+            LOG.debug("Could not find class", e);
+        }
+
+        URL[] urls = dependencyCollector.asUrls();
+
+        for (URL url : urls) {
+            String urlWithoutType = url.toString().substring(6);
+            if (urlWithoutType.endsWith(".jar")) {
+                try {
+                    Model model = new MavenBridgeImpl().readEffectiveModelFromLocation(new File(urlWithoutType), false);
+                    Artifact artifact = new DefaultArtifact(model.getGroupId() + ":" + model.getArtifactId() + ":" + model.getVersion());
+                    allLibrariesOfProject.add(artifact);
+                } catch (Exception e) {
+                    System.out.println("###################################################################" + urlWithoutType);
+                }
+
+            }
+        }
+        return allLibrariesOfProject;
+    }
+
+    /**
+     * This method is traversing parent folders until it reaches java folder in order to get the FQN
+     *
+     * @param inputFile Java input file to retrieve FQN (Full Qualified Name)
+     * @return qualified name with full package
+     */
+    public static String getFQN(Path inputFile) {
+
+        String simpleName = inputFile.getFileName().toString().replaceAll("\\.(?i)java", "");
+        String packageName = getPackageName(inputFile.getParent(), "");
+
+        return packageName + "." + simpleName;
+    }
+
+    /**
+     * This method traverse the folder in reverse order from child to parent
+     *
+     * @param folder      parent input file
+     * @param packageName the package name
+     * @return package name
+     */
+    private static String getPackageName(Path folder, String packageName) {
+
+        if (folder == null) {
+            return null;
+        }
+
+        if (folder.getFileName().toString().toLowerCase().equals("java")) {
+            String[] pkgs = packageName.split("\\.");
+
+            packageName = pkgs[pkgs.length - 1];
+            // Reverse order as we have traversed folders from child to parent
+            for (int i = pkgs.length - 2; i > 0; i--) {
+                packageName = packageName + "." + pkgs[i];
+            }
+            return packageName;
+        }
+        return getPackageName(folder.getParent(), packageName + "." + folder.getFileName().toString());
+    }
+
     /**
      * Generates a list of all artifacts of the given nodes
      *
@@ -167,6 +265,7 @@ public class PomAnalyzer {
 
         List<Artifact> allArtifactsOfProject = new ArrayList<>();
         for (DependencyNode rootNode : rootNodes) {
+            allArtifactsOfProject.add(rootNode.getArtifact());
             findArtifactsOfNode(rootNode, mavenRepoLocation, allArtifactsOfProject);
         }
         return allArtifactsOfProject;
@@ -211,7 +310,7 @@ public class PomAnalyzer {
      * @param mavenRepoLocation Location of the local maven repository
      * @return The searched jar file or null
      */
-    private static File tryFindJarInLocalMavenRepo(Artifact artifact, File mavenRepoLocation) throws ArtifactResolutionException {
+    public static File tryFindJarInLocalMavenRepo(Artifact artifact, File mavenRepoLocation) throws ArtifactResolutionException {
 
         File groupFolder = new File(mavenRepoLocation, artifact.getGroupId().replace('.', '/'));
         File artifactFolder = new File(groupFolder, artifact.getArtifactId());
@@ -303,47 +402,5 @@ public class PomAnalyzer {
     private static List<RemoteRepository> newRepositories() {
 
         return new ArrayList<>(Collections.singletonList(new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2/").build()));
-    }
-
-    /**
-     * Handler class to parse the pom.xml and get the java version
-     */
-    public static class PomXmlJavaVersionHandler extends DefaultHandler {
-
-        private final StringBuilder elementValue = new StringBuilder();
-        private String javaVersion = "undefined";
-        private boolean javaVersionAvailable = false;
-
-        public PomXmlJavaVersionHandler() {
-        }
-
-        @Override
-        public void startElement(String uri, String lName, String qName, Attributes attr) {
-
-            if (qName.equals("java.version")) {
-                javaVersionAvailable = true;
-            }
-        }
-
-        @Override
-        public void endElement(String uri, String localName, String qName) throws SAXException {
-
-            if (qName.equals("java.version")) {
-                javaVersion = elementValue.toString();
-            }
-        }
-
-        @Override
-        public void characters(char[] ch, int start, int length) throws SAXException {
-
-            if (javaVersionAvailable) {
-                elementValue.append(ch, start, length);
-            }
-        }
-
-        public String getJavaVersion() {
-
-            return javaVersion;
-        }
     }
 }

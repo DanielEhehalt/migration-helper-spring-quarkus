@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<ruleset xmlns="http://windup.jboss.org/schema/jboss-ruleset" id="devon4j-modules-quarkus"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://windup.jboss.org/schema/jboss-ruleset http://windup.jboss.org/schema/jboss-ruleset/windup-jboss-ruleset.xsd">
+    <metadata>
+        <description>
+            This rule set contains the recommended actions for the migration of the devon4j modules.
+        </description>
+        <dependencies>
+            <addon id="org.jboss.windup.rules,windup-rules-javaee,3.0.0.Final"/>
+            <addon id="org.jboss.windup.rules,windup-rules-java,3.0.0.Final"/>
+            <addon id="org.jboss.windup.rules,windup-rules-xml,3.0.0.Final"/>
+        </dependencies>
+        <targetTechnology id="quarkus"/>
+    </metadata>
+    <rules>
+        <rule id="devon4j-modules-quarkus-0000">
+            <when>
+                <project>
+                    <artifact artifactId="devon4j-basic" groupId="com.devonfw.java.modules"/>
+                </project>
+            </when>
+            <perform>
+                <hint title="Partially usable. Packages user and config contain integrations of the Spring framework."
+                      category-id="mandatory" effort="1">
+                    <message>Partially usable. Packages user and config contain integrations of the Spring framework.
+                    </message>
+                </hint>
+            </perform>
+        </rule>
+        <rule id="devon4j-modules-quarkus-0001">
+            <when>
+                <project>
+                    <artifact artifactId="devon4j-http-{*}" groupId="com.devonfw.java.modules"/>
+                </project>
+            </when>
+            <perform>
+                <hint title="Devon4j http modules must be replaced with the quarkus REST client. https://quarkus.io/guides/spring-web"
+                      category-id="mandatory" effort="1">
+                    <message>Devon4j http modules must be replaced with the quarkus REST client. https://quarkus.io/guides/spring-web
+                    </message>
+                </hint>
+            </perform>
+        </rule>
+        <rule id="devon4j-modules-quarkus-0002">
+            <when>
+                <project>
+                    <artifact artifactId="devon4j-security{*}" groupId="com.devonfw.java.modules"/>
+                </project>
+            </when>
+            <perform>
+                <hint title="Devon4j module security must be replaced with Quarkus security extension."
+                      category-id="mandatory" effort="1">
+                    <message>Devon4j module security must be replaced with Quarkus security extension.
+                    </message>
+                </hint>
+            </perform>
+        </rule>
+        <rule id="devon4j-modules-quarkus-0003">
+            <when>
+                <project>
+                    <artifact artifactId="devon4j-jpa{*}" groupId="com.devonfw.java.modules"/>
+                </project>
+            </when>
+            <perform>
+                <hint title="Devon4j JPA modules must be replaced by a Quarkus JPA extension or by the vanilla spring-data module. The devon4j-project recommend the use of vanilla spring-data."
+                      category-id="mandatory" effort="1">
+                    <message>Devon4j JPA modules must be replaced by a Quarkus JPA extension or by the vanilla spring-data module. The devon4j-project recommend the use of vanilla spring-data.
+                    </message>
+                </hint>
+            </perform>
+        </rule>
+        <rule id="devon4j-modules-quarkus-0004">
+            <when>
+                <project>
+                    <artifact artifactId="devon4j-beanmapping{*}" groupId="com.devonfw.java.modules"/>
+                </project>
+            </when>
+            <perform>
+                <hint title="Devon4j beanmapping modules must be replaced by MapStruct. https://github.com/devonfw/devon4j/blob/master/documentation/quarkus/guide-beanmapping-quarkus.asciidoc"
+                      category-id="mandatory" effort="1">
+                    <message>Devon4j beanmapping modules must be replaced by MapStruct. https://github.com/devonfw/devon4j/blob/master/documentation/quarkus/guide-beanmapping-quarkus.asciidoc
+                    </message>
+                </hint>
+            </perform>
+        </rule>
+    </rules>
+</ruleset>
