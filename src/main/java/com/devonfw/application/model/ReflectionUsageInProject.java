@@ -1,7 +1,7 @@
 package com.devonfw.application.model;
 
 /**
- * Model for entries of the reflection usage in project list
+ * Model for reflection usage entries
  */
 public class ReflectionUsageInProject {
 

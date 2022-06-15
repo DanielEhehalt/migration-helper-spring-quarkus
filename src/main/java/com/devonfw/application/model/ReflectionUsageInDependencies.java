@@ -3,7 +3,7 @@ package com.devonfw.application.model;
 import java.util.List;
 
 /**
- * Model for entries of the reflection usage in dependencies list
+ * Model for reflection usage entries
  */
 public class ReflectionUsageInDependencies {
 

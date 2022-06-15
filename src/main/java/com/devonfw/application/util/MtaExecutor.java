@@ -20,8 +20,8 @@ public class MtaExecutor {
      * Runs the Red Hat Migration Toolkit for Applications (MTA) to find incompatible dependencies.
      * The result of the analysis is temporarily saved in the results folder
      *
-     * @param projectLocation Path to the jar/ war file which should be analyzed
-     * @param resultPath Path to the directory where the results will be saved
+     * @param projectLocation Path to the project which should be analyzed
+     * @param resultPath      Path to the directory where the results will be saved
      * @return If execution was successful
      */
     public static boolean executeMtaForProject(String projectLocation, String resultPath) {
@@ -57,6 +57,13 @@ public class MtaExecutor {
         }
     }
 
+    /**
+     * Runs the Red Hat Migration Toolkit for Applications (MTA) to find reflection calls in a library
+     *
+     * @param libraryLocation Path to the jar file which should be analyzed
+     * @param resultPath      Path to the directory where the results will be saved
+     * @return If execution was successful
+     */
     public static boolean executeMtaToFindReflectionInLibrary(String libraryLocation, String resultPath) {
 
         ProcessBuilder builder = new ProcessBuilder();

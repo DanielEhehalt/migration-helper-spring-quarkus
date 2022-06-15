@@ -13,7 +13,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.graph.DependencyNode;
-import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -96,8 +95,8 @@ public class Application implements Runnable {
             LOG.info("Result folder: " + resultPath);
 
             //Initialization
-            List<Artifact> mmmFoundArtifacts = PomAnalyzer.collectAllLibrariesOfProject(applicationEntryPoint.toPath(), new File(inputProject), mavenRepoLocation);
-            List<DependencyNode> dependencyNodes = PomAnalyzer.generateDependencyTree(mmmFoundArtifacts, projectPom, mavenRepoLocation);
+            List<Artifact> applicationStartupLibrariesOfProject = PomAnalyzer.collectAllApplicationStartupLibrariesOfProject(applicationEntryPoint.toPath(), new File(inputProject), mavenRepoLocation);
+            List<DependencyNode> dependencyNodes = PomAnalyzer.generateDependencyTree(applicationStartupLibrariesOfProject, projectPom, mavenRepoLocation);
             List<Artifact> allArtifactsAfterTreeBuilding = PomAnalyzer.generateArtifactsList(dependencyNodes, mavenRepoLocation);
 
             // Step 1: Project analysis: Generates list of blacklisted packages and of the reflection usage in the project

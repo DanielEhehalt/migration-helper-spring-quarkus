@@ -109,6 +109,7 @@ public class PomAnalyzer {
     /**
      * Generates the dependency tree
      *
+     * @param allArtifactsOfProject List with all artifacts of the project
      * @param locationOfProjectPom Location of project POM
      * @param mavenRepoLocation    Location of the local maven repository
      * @return List with one DependencyNode per dependency in the project. Enriched with all children which have the scope compile
@@ -181,11 +182,18 @@ public class PomAnalyzer {
         return collectResult.getRoot();
     }
 
-    public static List<Artifact> collectAllLibrariesOfProject(Path springBootApp, File inputProject, File mavenRepo) {
+    /**
+     * Creates a java context based on the @SpringBootApplication class and returns the loaded dependencies
+     *
+     * @param springBootApp Path of the @SpringBootApplication class
+     * @param inputProject  Location of the project
+     * @param mavenRepo     Location of the local maven repository
+     * @return List with dependencies
+     */
+    public static List<Artifact> collectAllApplicationStartupLibrariesOfProject(Path springBootApp, File inputProject, File mavenRepo) {
 
-        List<Artifact> allLibrariesOfProject = new ArrayList<>();
+        List<Artifact> applicationStartupLibrariesOfProject = new ArrayList<>();
 
-        //Build Java context from file and project
         MavenDependencyCollector dependencyCollector = new MavenDependencyCollector(new MavenBridgeImpl(mavenRepo), false, true, null);
         JavaContext context = JavaSourceProviderUsingMaven.createFromLocalMavenProject(inputProject, dependencyCollector);
         String fqnOfClass = getFQN(springBootApp);
@@ -197,21 +205,20 @@ public class PomAnalyzer {
         }
 
         URL[] urls = dependencyCollector.asUrls();
-
         for (URL url : urls) {
             String urlWithoutType = url.toString().substring(6);
             if (urlWithoutType.endsWith(".jar")) {
                 try {
                     Model model = new MavenBridgeImpl().readEffectiveModelFromLocation(new File(urlWithoutType), false);
                     Artifact artifact = new DefaultArtifact(model.getGroupId() + ":" + model.getArtifactId() + ":" + model.getVersion());
-                    allLibrariesOfProject.add(artifact);
+                    applicationStartupLibrariesOfProject.add(artifact);
                 } catch (Exception e) {
-                    System.out.println("###################################################################" + urlWithoutType);
+                    AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(urlWithoutType, "Failed to resolve effective POM this artifact"));
+                    LOG.debug("Failed to resolve effective POM this artifact: " + urlWithoutType, e);
                 }
-
             }
         }
-        return allLibrariesOfProject;
+        return applicationStartupLibrariesOfProject;
     }
 
     /**
@@ -309,6 +316,7 @@ public class PomAnalyzer {
      * @param artifact          Artifact to find
      * @param mavenRepoLocation Location of the local maven repository
      * @return The searched jar file or null
+     * @throws ArtifactResolutionException Throws Exception when artifact is not resolvable
      */
     public static File tryFindJarInLocalMavenRepo(Artifact artifact, File mavenRepoLocation) throws ArtifactResolutionException {
 

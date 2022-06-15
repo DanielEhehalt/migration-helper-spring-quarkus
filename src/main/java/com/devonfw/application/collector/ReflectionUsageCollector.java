@@ -24,6 +24,7 @@ public class ReflectionUsageCollector {
      * Converts output from CSV parser to a list of reflection usage
      *
      * @param csvOutput Output from CSV parser
+     * @param inputProject Location of the project
      * @return reflection usage list
      */
     public static List<ReflectionUsageInProject> generateReflectionUsageInProjectList(List<List<String>> csvOutput, String inputProject) {
@@ -87,6 +88,13 @@ public class ReflectionUsageCollector {
         return reflectionUsage;
     }
 
+    /**
+     * Replaces the jar file names with the full names of the artifacts
+     *
+     * @param reflectionUsageInDependencies List with the jar file names to replace
+     * @param allArtifactsAfterTreeBuilding List with all artifacts of the project
+     * @return List with replaced names
+     */
     public static List<ReflectionUsageInDependencies> mapJarFilesToFullArtifactNames(List<ReflectionUsageInDependencies> reflectionUsageInDependencies, List<Artifact> allArtifactsAfterTreeBuilding) {
 
         List<ReflectionUsageInDependencies> result = new ArrayList<>();
