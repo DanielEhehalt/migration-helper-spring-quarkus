@@ -25,10 +25,10 @@ This migration helper analyzes Spring Boot projects in terms of migration capabi
 
 ## Options
 ```
--p --project                Maven project location
--a --app                    Application entry point location (@SpringBootApplication)
--m --mavenRepo              Maven repository location
+-p  --project               Maven project location
+-a  --app                   Application entry point location (@SpringBootApplication)
+-m  --mavenRepo             Maven repository location
 -wd --withoutDependencies   Without analysis of the reflection usage of the dependencies. This analysis can take a very long time
--v --verbose                Enable debug logging
--h --help                   Display help
+-v  --verbose               Enable debug logging
+-h  --help                  Display help
 ```
