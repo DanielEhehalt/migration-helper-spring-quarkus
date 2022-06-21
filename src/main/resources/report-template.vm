@@ -8,32 +8,28 @@
     <h1>Report for project: $projectName</h1>
     <strong>Java version: $javaVersion. Quarkus minimum is Java 11</strong>
 
-    <h2>Blacklist (size: $blacklistSize)</h2>
+    <h2>General Issues (found: $generalIssuesListSize)</h2>
+    #foreach($generalIssue in $generalIssues)
+        <p>$generalIssue.description</p>
+    #end
+
+    <h2>Blacklisted Dependencies (found: $dependencyBlacklistSize)</h2>
     <table>
         <tr>
-            <th>ID</th>
             <th>GroupId</th>
             <th>ArtifactId</th>
-            <th>Packages</th>
+            <th>Version</th>
+            <th>Occurrence in Java classes</th>
             <th>Description</th>
         </tr>
-        #foreach( $blacklistEntry in $blacklist )
-        <tr>
-            <td>$blacklistEntry.mtaRuleId</td>
-            #if( ${blacklistEntry.mavenIdentifiers.size()} > 0 )
-                <td>$blacklistEntry.mavenIdentifiers.get(0).groupId</td>
-                <td>$blacklistEntry.mavenIdentifiers.get(0).artifactId</td>
-            #else
-                <td></td>
-                <td></td>
-            #end
-            #if( ${blacklistEntry.packages.size()} > 0 )
-                <td>$blacklistEntry.packages.get(0)</td>
-            #else
-                <td></td>
-            #end
-            <td>$blacklistEntry.description</td>
-        </tr>
+        #foreach($blacklistEntry in $dependencyBlacklist)
+            <tr>
+                <td>$blacklistEntry.groupId</td>
+                <td>$blacklistEntry.artifactId</td>
+                <td>$blacklistEntry.version</td>
+                <td>$blacklistEntry.occurrenceInProjectClasses/$totalJavaClassesScanned</td>
+                <td>$blacklistEntry.descriptionIfBlacklisted</td>
+            </tr>
         #end
     </table>
 
@@ -43,17 +39,19 @@
             <th>Class</th>
             <th>Path</th>
         </tr>
-        #foreach( $reflectionUsage in $reflectionUsageInProjectList )
-        <tr>
-            <td>$reflectionUsage.className</td>
-            <td>$reflectionUsage.path</td>
-        </tr>
+        #foreach($reflectionUsage in $reflectionUsageInProjectList)
+            <tr>
+                <td>$reflectionUsage.className</td>
+                <td>$reflectionUsage.path</td>
+            </tr>
         #end
     </table>
 
-    <h2>Reflection usage in dependencies as dependency tree (found: $reflectionUsageInDependenciesListSize)</h2>
-    #foreach( $branch in $dependencyTree )
-    <p>$branch</p>
+    #if(!$withoutReflectionUsageOfDependencies)
+        <h2>Reflection usage in dependencies as dependency tree (found: $reflectionUsageInDependenciesListSize)</h2>
+        #foreach($branch in $dependencyTree)
+            $branch
+        #end
     #end
 
     <h2>Analysis Failures (found: $analysisFailuresListSize)</h2>
@@ -63,11 +61,11 @@
             <th>Name</th>
             <th>Description</th>
         </tr>
-        #foreach( $analysisFailure in $analysisFailuresList )
-        <tr>
-            <td>$analysisFailure.name</td>
-            <td>$analysisFailure.description</td>
-        </tr>
+        #foreach($analysisFailure in $analysisFailuresList)
+            <tr>
+                <td>$analysisFailure.name</td>
+                <td>$analysisFailure.description</td>
+            </tr>
         #end
     </table>
 </body>

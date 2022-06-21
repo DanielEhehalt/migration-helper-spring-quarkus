@@ -21,13 +21,14 @@ public class ReflectionUsageCollector {
     private static final Logger LOG = LoggerFactory.getLogger(ReflectionUsageCollector.class);
 
     /**
-     * Converts output from CSV parser to a list of reflection usage
+     * This method converts the output from the CSV parser to a list of ReflectionUsageInProject objects
      *
-     * @param csvOutput Output from CSV parser
+     * @param csvOutput    Output from CSV parser
      * @param inputProject Location of the project
      * @return reflection usage list
      */
-    public static List<ReflectionUsageInProject> generateReflectionUsageInProjectList(List<List<String>> csvOutput, String inputProject) {
+    public static List<ReflectionUsageInProject> generateReflectionUsageInProjectList(List<List<String>> csvOutput,
+                                                                                      String inputProject) {
 
         List<ReflectionUsageInProject> reflectionUsage = new ArrayList<>();
 
@@ -42,31 +43,35 @@ public class ReflectionUsageCollector {
     }
 
     /**
-     * Runs MTA for all specified libraries and collects reflection usage of these libraries
+     * This method runs the MTA for all specified libraries and collects the reflection usage of these libraries
      *
      * @param libraries  Libraries to analyze
      * @param resultPath Path for analysis results
      * @return Reflection usage of the specified libraries
      */
-    public static List<ReflectionUsageInDependencies> collectReflectionUsageInLibraries(List<Artifact> libraries, String resultPath) {
+    public static List<ReflectionUsageInDependencies> collectReflectionUsageInLibraries(List<Artifact> libraries,
+                                                                                        String resultPath) {
 
         List<ReflectionUsageInDependencies> reflectionUsage = new ArrayList<>();
         libraries.forEach(library -> {
-            boolean execution = MtaExecutor.executeMtaToFindReflectionInLibrary(library.getFile().toString(), resultPath);
+            boolean execution =
+                    MtaExecutor.executeMtaToFindReflectionInLibrary(library.getFile().toString(), resultPath);
             List<List<String>> csvOutput = CsvParser.parseCSV(resultPath);
-            List<ReflectionUsageInDependencies> reflectionUsageInDependencies = generateReflectionUsageInDependenciesList(csvOutput);
+            List<ReflectionUsageInDependencies> reflectionUsageInDependencies =
+                    generateReflectionUsageInDependenciesList(csvOutput);
             reflectionUsage.addAll(reflectionUsageInDependencies);
         });
         return reflectionUsage;
     }
 
     /**
-     * Converts output from CSV parser to a list of reflection usage
+     * This method converts the output from the CSV parser to a list of ReflectionUsageInProject objects
      *
      * @param csvOutput Output from CSV parser
      * @return reflection usage list
      */
-    public static List<ReflectionUsageInDependencies> generateReflectionUsageInDependenciesList(List<List<String>> csvOutput) {
+    public static List<ReflectionUsageInDependencies> generateReflectionUsageInDependenciesList(
+            List<List<String>> csvOutput) {
 
         List<ReflectionUsageInDependencies> reflectionUsage = new ArrayList<>();
 
@@ -75,9 +80,12 @@ public class ReflectionUsageCollector {
                 String jarFile = csvEntry.get(10);
                 String className = csvEntry.get(6);
 
-                Optional<ReflectionUsageInDependencies> optionalReflectionUsageInDependency = reflectionUsage.stream().filter(reflectionUsageInDependency -> reflectionUsageInDependency.getJarFile().equals(jarFile)).findAny();
+                Optional<ReflectionUsageInDependencies> optionalReflectionUsageInDependency = reflectionUsage.stream()
+                        .filter(reflectionUsageInDependency -> reflectionUsageInDependency.getJarFile().equals(jarFile))
+                        .findAny();
                 if (optionalReflectionUsageInDependency.isPresent()) {
-                    reflectionUsage.get(reflectionUsage.indexOf(optionalReflectionUsageInDependency.get())).getClasses().add(className);
+                    reflectionUsage.get(reflectionUsage.indexOf(optionalReflectionUsageInDependency.get())).getClasses()
+                            .add(className);
                 } else {
                     ArrayList<String> classes = new ArrayList<>();
                     classes.add(className);
@@ -89,13 +97,15 @@ public class ReflectionUsageCollector {
     }
 
     /**
-     * Replaces the jar file names with the full names of the artifacts
+     * This method replaces the jar file names with the full names of the artifacts
      *
      * @param reflectionUsageInDependencies List with the jar file names to replace
      * @param allArtifactsAfterTreeBuilding List with all artifacts of the project
      * @return List with replaced names
      */
-    public static List<ReflectionUsageInDependencies> mapJarFilesToFullArtifactNames(List<ReflectionUsageInDependencies> reflectionUsageInDependencies, List<Artifact> allArtifactsAfterTreeBuilding) {
+    public static List<ReflectionUsageInDependencies> mapJarFilesToFullArtifactNames(
+            List<ReflectionUsageInDependencies> reflectionUsageInDependencies,
+            List<Artifact> allArtifactsAfterTreeBuilding) {
 
         List<ReflectionUsageInDependencies> result = new ArrayList<>();
 
@@ -114,9 +124,13 @@ public class ReflectionUsageCollector {
             }).findAny();
             if (optionalArtifact.isPresent()) {
                 Artifact artifact = optionalArtifact.get();
-                result.add(new ReflectionUsageInDependencies(artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion(), reflectionUsageInDependency.getClasses()));
+                result.add(new ReflectionUsageInDependencies(
+                        artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion(),
+                        reflectionUsageInDependency.getClasses()));
             } else {
-                AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(reflectionUsageInDependency.getJarFile(), "Reflection usage found for this artifact, but it could not be assigned to any dependency in the dependency tree."));
+                AnalysisFailureCollector.addAnalysisFailure(
+                        new AnalysisFailureEntry(reflectionUsageInDependency.getJarFile(),
+                                "Reflection usage found for this artifact, but it could not be assigned to any dependency in the dependency tree."));
             }
         });
         return result;

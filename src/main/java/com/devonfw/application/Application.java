@@ -2,12 +2,12 @@ package com.devonfw.application;
 
 import com.devonfw.application.analyzer.PomAnalyzer;
 import com.devonfw.application.analyzer.ProjectAnalyzer;
-import com.devonfw.application.collector.BlacklistCollector;
+import com.devonfw.application.collector.MtaIssuesCollector;
 import com.devonfw.application.collector.ReflectionUsageCollector;
-import com.devonfw.application.model.BlacklistEntry;
-import com.devonfw.application.model.ReflectionUsageInDependencies;
-import com.devonfw.application.model.ReflectionUsageInProject;
-import com.devonfw.application.util.*;
+import com.devonfw.application.model.*;
+import com.devonfw.application.util.CsvParser;
+import com.devonfw.application.util.MtaExecutor;
+import com.devonfw.application.util.ReportGenerator;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.config.Configurator;
@@ -44,7 +44,8 @@ public class Application implements Runnable {
     @CommandLine.Option(names = {"-m", "--mavenRepo"}, description = "Maven repository location")
     private String mavenRepo;
 
-    @CommandLine.Option(names = {"-wd", "--withoutDependencies"}, defaultValue = "false", description = "With analysis of the reflection usage of the dependencies")
+    @CommandLine.Option(names = {"-wd", "--withoutDependencies"}, defaultValue = "false",
+            description = "With analysis of the reflection usage of the dependencies")
     private Boolean withoutReflectionUsageOfDependencies;
 
     @CommandLine.Option(names = {"-v", "--verbose"}, defaultValue = "false", description = "Enable debug logging")
@@ -59,7 +60,7 @@ public class Application implements Runnable {
     }
 
     /**
-     * Execute the analysis steps
+     * This method execute the analysis steps
      */
     @Override
     public void run() {
@@ -95,30 +96,38 @@ public class Application implements Runnable {
             LOG.info("Result folder: " + resultPath);
 
             //Initialization
-            List<Artifact> applicationStartupLibrariesOfProject = PomAnalyzer.collectAllApplicationStartupLibrariesOfProject(applicationEntryPoint.toPath(), new File(inputProject), mavenRepoLocation);
-            List<DependencyNode> dependencyNodes = PomAnalyzer.generateDependencyTree(applicationStartupLibrariesOfProject, projectPom, mavenRepoLocation);
+            List<Artifact> applicationStartupLibrariesOfProject =
+                    PomAnalyzer.collectAllApplicationStartupLibrariesOfProject(applicationEntryPoint.toPath(), new File(inputProject), mavenRepoLocation);
+            List<DependencyNode> dependencyNodes =
+                    PomAnalyzer.generateDependencyTree(applicationStartupLibrariesOfProject, projectPom, mavenRepoLocation);
             List<Artifact> allArtifactsAfterTreeBuilding = PomAnalyzer.generateArtifactsList(dependencyNodes, mavenRepoLocation);
+            List<ProjectDependency> projectDependencies = ProjectAnalyzer.createProjectDependencyObjectFromArtifacts(allArtifactsAfterTreeBuilding);
 
-            // Step 1: Project analysis: Generates list of blacklisted packages and of the reflection usage in the project
+            // Step 1: Project analysis: Generates list of found MTA issues and of the reflection usage in the project
             boolean execution = MtaExecutor.executeMtaForProject(inputProjectLocation.toString(), resultPath);
             List<List<String>> csvOutput = CsvParser.parseCSV(resultPath);
-            List<BlacklistEntry> blacklist = BlacklistCollector.generateBlacklist(csvOutput);
-            List<ReflectionUsageInProject> reflectionUsageInProject = ReflectionUsageCollector.generateReflectionUsageInProjectList(csvOutput, inputProjectLocation.toString());
+            List<MtaIssue> mtaIssuesList = MtaIssuesCollector.generateMtaIssuesList(csvOutput);
+            List<ReflectionUsageInProject> reflectionUsageInProject = ReflectionUsageCollector.generateReflectionUsageInProjectList(csvOutput,
+                            inputProjectLocation.toString());
 
             // Step 2: Usage of blacklisted packages
             File entryPoint = new File(applicationEntryPoint.getParent());
-            HashMap<String, Integer> imports = ProjectAnalyzer.collectImportStatementsFromAllClasses(entryPoint, new HashMap<>());
-            //ToDo: Map occurrence with libraries
+            Integer totalJavaClassesScanned = ProjectAnalyzer.executeOccurrenceMeasurementOfProjectDependencies(entryPoint, projectDependencies);
+            List<ProjectDependency> dependencyBlacklist =
+                    MtaIssuesCollector.generateDependencyBlacklistFromMtaIssuesList(mtaIssuesList, projectDependencies);
 
             //Step 3: Reflection usage in the project dependencies
             List<ReflectionUsageInDependencies> reflectionUsageInDependencies = new ArrayList<>();
             if (!withoutReflectionUsageOfDependencies) {
                 reflectionUsageInDependencies = ReflectionUsageCollector.collectReflectionUsageInLibraries(allArtifactsAfterTreeBuilding, resultPath);
             }
-            reflectionUsageInDependencies = ReflectionUsageCollector.mapJarFilesToFullArtifactNames(reflectionUsageInDependencies, allArtifactsAfterTreeBuilding);
+            reflectionUsageInDependencies =
+                    ReflectionUsageCollector.mapJarFilesToFullArtifactNames(reflectionUsageInDependencies, allArtifactsAfterTreeBuilding);
 
             //Generate report
-            ReportGenerator.generateReport(blacklist, reflectionUsageInProject, reflectionUsageInDependencies, dependencyNodes, projectPom.toString(), resultPath);
+            ReportGenerator.generateReport(dependencyBlacklist, totalJavaClassesScanned, mtaIssuesList, reflectionUsageInProject,
+                    reflectionUsageInDependencies, dependencyNodes, projectPom.toString(), resultPath, withoutReflectionUsageOfDependencies);
+
             System.exit(0);
         } else {
             LOG.error("Arguments -p, -a and -m are mandatory");
@@ -127,7 +136,7 @@ public class Application implements Runnable {
     }
 
     /**
-     * Check if locations exist
+     * This method checks if all given locations exist
      */
     private void checkIfFilesExist(File inputProjectLocation, File mavenRepoLocation, File applicationEntryPoint, File projectPom) {
 
@@ -147,7 +156,7 @@ public class Application implements Runnable {
     }
 
     /**
-     * Create directory for results
+     * This method creates the directory for the results
      *
      * @return Path to directory
      */
@@ -161,19 +170,19 @@ public class Application implements Runnable {
     }
 
     /**
-     * Returns the help text for the --help argument
+     * This method returns the help text for the -h / --help argument
      *
      * @return The help text
      */
     private String printHelp() {
 
-        return "This migration helper analyzes Spring Boot projects in terms of migration capability to Quarkus.\n " +
-                "After various analyses, a decision aid is created that estimates the effort and identifies tasks.\n " +
-                "Currently only Maven is supported as build tool.\n\n " +
+        return "This migration helper analyzes Spring Boot projects in terms of migration capability to Quarkus.\n" +
+                "After various analyses, a decision aid is created that estimates the effort and identifies tasks.\n" +
+                "Currently only Maven is supported as build tool.\n\n" +
                 "Options:\n" +
                 "-p  --project                Maven project location\n" +
                 "-a  --app                    Application entry point location (@SpringBootApplication)\n" +
-                "-m  --mavenRepo              Maven repository location\n" +
+                "-m  --mavenRepo              Local Maven repository location\n" +
                 "-wd --withoutDependencies    Without analysis of the reflection usage of the dependencies. This analysis can take a very long time\n" +
                 "-v  --verbose                Enable debug logging\n" +
                 "-h  --help                   Display help";

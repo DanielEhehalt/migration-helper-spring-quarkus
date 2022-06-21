@@ -2,8 +2,10 @@ package com.devonfw.application.analyzer;
 
 import com.devonfw.application.collector.AnalysisFailureCollector;
 import com.devonfw.application.model.AnalysisFailureEntry;
+import com.devonfw.application.model.ProjectDependency;
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaSource;
+import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,119 +22,127 @@ public class ProjectAnalyzer {
     private static final Logger LOG = LoggerFactory.getLogger(ProjectAnalyzer.class);
 
     /**
-     * Generates HashMap with the location of the library as key and all classes of the dependency as value
+     * This method creates a list of ProjectDependency objects based on the found artifacts.
+     * The ProjectDependency objects are enriched with the included packages and classes
      *
-     * @param libraries List of the library locations
-     * @return HashMap with the location of the library as key and all classes of the dependency as value
+     * @param allArtifactsAfterTreeBuilding Artifacts to discover packages and classes
+     * @return All ProjectDependencies enhanced with all possible classes and packages
      */
-    public static HashMap<String, List<String>> getAllClassesOfAllLibraries(List<String> libraries) {
+    public static List<ProjectDependency> createProjectDependencyObjectFromArtifacts(
+            List<Artifact> allArtifactsAfterTreeBuilding) {
 
-        HashMap<String, List<String>> classesOfLibraries = new HashMap<>();
-        for (String library : libraries) {
-            try {
-                if (library.endsWith(".jar")) {
-                    ZipInputStream zip = new ZipInputStream(new FileInputStream(library));
+        List<ProjectDependency> projectDependencies = new ArrayList<>();
+
+        for (Artifact artifact : allArtifactsAfterTreeBuilding) {
+            File dependencyLocation = artifact.getFile();
+            ProjectDependency projectDependency =
+                    new ProjectDependency(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(), new ArrayList<>(), new ArrayList<>());
+            if (dependencyLocation.exists()) {
+                try {
+                    ZipInputStream zip = new ZipInputStream(new FileInputStream(dependencyLocation));
                     for (ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
-                        if (!entry.isDirectory() && entry.getName().endsWith(".class")) {
-                            String className = entry.getName().replace('/', '.'); // including ".class"
-                            String substringWithoutClass = className.substring(0, className.length() - ".class".length());
-                            if (classesOfLibraries.containsKey(library)) {
-                                List<String> classes = classesOfLibraries.get(library);
-                                classes.add(substringWithoutClass);
-                                classesOfLibraries.replace(library, classes);
-                            } else {
-                                List<String> classes = new ArrayList<>();
-                                classes.add(substringWithoutClass);
-                                classesOfLibraries.put(library, classes);
+                        String filepath = entry.getName();
+                        String fqnOfClassWithFileExtension = filepath.replace('/', '.');
+                        if (!entry.isDirectory() && filepath.endsWith(".class") && !filepath.contains("$")
+                                && fqnOfClassWithFileExtension.contains(artifact.getGroupId())) {
+                            String fqnOfClass = fqnOfClassWithFileExtension.substring(0, fqnOfClassWithFileExtension.length() - ".class".length());
+                            projectDependency.getClasses().add(fqnOfClass);
+                            String packageOfClass = fqnOfClass.substring(0, fqnOfClass.lastIndexOf("."));
+                            if (!projectDependency.getPackages().contains(packageOfClass)) {
+                                projectDependency.getPackages().add(packageOfClass);
                             }
                         }
                     }
+                } catch (IOException e) {
+                    AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(
+                            artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion(),
+                            "Could not find jar file in local maven repository. Collecting classes and packages of this artifact is not possible."));
+                    LOG.debug("Could not find jar file in local maven repository for artifact: " +
+                            artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion() +
+                            ". Collecting classes and packages of this artifact is not possible.");
                 }
-            } catch (IOException e) {
-                AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(library, "Could not find jar archive. IOException was thrown"));
-                LOG.debug("Could not find jar archive", e);
             }
+            projectDependencies.add(projectDependency);
         }
-        return classesOfLibraries;
+        return projectDependencies;
     }
 
     /**
-     * Creates a HashMap with the import statements as keys and the paths of all libraries that could provide the import as values
+     * This method collects all import statements recursively across all java files from an entrypoint and tries to assign them to the project
+     * dependencies
      *
-     * @param imports            Import Statements as for searching
-     * @param classesOfLibraries Classes of all libraries for comparison
-     * @return HashMap with the import statements as keys and the paths of all libraries that could provide the import as values
+     * @param entryPoint          Directory as entrypoint
+     * @param projectDependencies List of the project dependencies
      */
-    public static HashMap<String, List<String>> mapImportStatementsToLibraries(List<String> imports, HashMap<String, List<String>> classesOfLibraries) {
-
-        HashMap<String, List<String>> importToDependency = new HashMap<>();
-        for (String importsEntry : imports) {
-            for (Map.Entry<String, List<String>> classes : classesOfLibraries.entrySet()) {
-                classes.getValue().forEach(classEntry -> {
-                    if (importToDependency.containsKey(importsEntry) && !importToDependency.get(importsEntry).contains(classes.getKey())) {
-                        List<String> dependenciesList = importToDependency.get(importsEntry);
-                        dependenciesList.add(classes.getKey());
-                        importToDependency.replace(importsEntry, dependenciesList);
-                    } else if (classEntry.equals(importsEntry)) {
-                        List<String> dependenciesList = new ArrayList<>();
-                        dependenciesList.add(classes.getKey());
-                        importToDependency.put(importsEntry, dependenciesList);
-                    }
-                });
-            }
-        }
-        return importToDependency;
-    }
-
-    /**
-     * Collect and count all import statements recursively across all java files from an entrypoint
-     *
-     * @param entryPoint Directory as entrypoint
-     * @param results    HashMap with import statement as key and total number of occurrences
-     * @return HashMap with import statement as key and total number of occurrences
-     */
-    public static HashMap<String, Integer> collectImportStatementsFromAllClasses(File entryPoint, HashMap<String, Integer> results) {
-
+    public static Integer executeOccurrenceMeasurementOfProjectDependencies(File entryPoint,
+                                                                            List<ProjectDependency> projectDependencies) {
+        Integer totalFilesScanned = 0;
         File[] files = entryPoint.listFiles();
         if (files == null) {
-            LOG.info("Can not collect import statements. No files to analyze found in: " + entryPoint);
-            return results;
+            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(entryPoint.toString(),
+                    "Can not collect import statements from this entrypoint recursively. No files found"));
+            LOG.error("Can not collect import statements from this entrypoint recursively. No files found in: " + entryPoint);
         }
         for (File file : files) {
             if (file.isFile() && file.getName().endsWith(".java")) {
-                scanForImportStatementsInClass(file, results);
+                totalFilesScanned += collectImportStatementsFromClassAndMapThemToTheAssociatedDependency(file, projectDependencies);
             } else if (file.isDirectory()) {
-                collectImportStatementsFromAllClasses(file, results);
+                totalFilesScanned += executeOccurrenceMeasurementOfProjectDependencies(file, projectDependencies);
             }
         }
-        return results;
+        return totalFilesScanned;
     }
 
     /**
-     * Searches for import statements in a source code file.
+     * This method searches for import statements in a source code file, tries to assign them to a project dependency and increments the occurrence
+     * counter of the associated dependency
      *
-     * @param file    Java source code file
-     * @param results HashMap with import statements as key and the found total occurrence as value
+     * @param file                Java source code file
+     * @param projectDependencies List of the project dependencies
      */
-    private static void scanForImportStatementsInClass(File file, HashMap<String, Integer> results) {
+    private static Integer collectImportStatementsFromClassAndMapThemToTheAssociatedDependency(File file,
+                                                                                               List<ProjectDependency> projectDependencies) {
 
+        Integer totalFilesScanned = 0;
         JavaProjectBuilder builder = new JavaProjectBuilder();
         try {
             builder.addSource(new FileReader(file));
         } catch (FileNotFoundException e) {
-            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(file.toString(), "Can not collect import statements from file " + file + " FileNotFoundException was thrown."));
+            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(file.toString(),
+                    "Can not collect import statements from file " + file + " FileNotFoundException was thrown."));
             LOG.debug("Can not collect import statements from file" + file, e);
         }
         Collection<JavaSource> sources = builder.getSources();
         for (JavaSource source : sources) {
+            List<ProjectDependency> alreadyCountedForThisSource = new ArrayList<>();
             List<String> importStatements = source.getImports();
+            totalFilesScanned++;
             for (String importStatement : importStatements) {
-                if (results.get(importStatement) != null) {
-                    int quantity = results.get(importStatement);
-                    results.replace(importStatement, quantity + 1);
+                if (importStatement.endsWith("*")) {
+                    String packageOfImportStatement = importStatement.substring(0, importStatement.length() - 2);
+                    Optional<ProjectDependency> optionalProjectDependency = projectDependencies.stream()
+                            .filter(projectDependency -> projectDependency.getPackages()
+                                    .contains(packageOfImportStatement)).findFirst();
+                    countOccurrenceAndCheckForDuplicates(optionalProjectDependency, alreadyCountedForThisSource);
                 } else {
-                    results.put(importStatement, 1);
+                    Optional<ProjectDependency> optionalProjectDependency = projectDependencies.stream()
+                            .filter(projectDependency -> projectDependency.getClasses().contains(importStatement))
+                            .findFirst();
+                    countOccurrenceAndCheckForDuplicates(optionalProjectDependency, alreadyCountedForThisSource);
                 }
+            }
+        }
+        return totalFilesScanned;
+    }
+
+    private static void countOccurrenceAndCheckForDuplicates(Optional<ProjectDependency> optionalProjectDependency,
+                                                             List<ProjectDependency> alreadyCountedForThisSource) {
+
+        if (optionalProjectDependency.isPresent()) {
+            ProjectDependency projectDependency = optionalProjectDependency.get();
+            if (!alreadyCountedForThisSource.contains(projectDependency)) {
+                projectDependency.incrementOccurrenceInProjectClasses();
+                alreadyCountedForThisSource.add(projectDependency);
             }
         }
     }

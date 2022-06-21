@@ -9,6 +9,7 @@ public class AnalysisFailureEntry {
     private String description;
 
     public AnalysisFailureEntry(String name, String description) {
+
         this.name = name;
         this.description = description;
     }

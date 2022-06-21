@@ -17,8 +17,8 @@ public class MtaExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(MtaExecutor.class);
 
     /**
-     * Runs the Red Hat Migration Toolkit for Applications (MTA) to find incompatible dependencies.
-     * The result of the analysis is temporarily saved in the results folder
+     * This method runs the Red Hat Migration Toolkit for Applications (MTA) to find incompatible dependencies. The
+     * result of the analysis is temporarily saved in the results folder
      *
      * @param projectLocation Path to the project which should be analyzed
      * @param resultPath      Path to the directory where the results will be saved
@@ -33,9 +33,19 @@ public class MtaExecutor {
         builder.directory(new File(System.getProperty("user.dir")));
 
         if (isWindows) {
-            builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", projectLocation, "--output", resultPath, "--target", "quarkus", "--target", "reflection", "--exportCSV", "--batchMode", "--skipReports", "--sourceMode", "--userRulesDirectory", "tools\\custom-mta-rules");
+            builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat",
+                    "--input", projectLocation,
+                    "--output", resultPath,
+                    "--target", "quarkus",
+                    "--target", "reflection",
+                    "--exportCSV",
+                    "--batchMode",
+                    "--skipReports",
+                    "--sourceMode",
+                    "--userRulesDirectory", "tools\\custom-mta-rules");
         } else {
-            builder.command("./tools/mta-cli-5.2.1/bin/mta-cli", "--input", projectLocation, "--output", resultPath, "--target", "quarkus", "--exportCSV", "--batchMode");
+            builder.command("./tools/mta-cli-5.2.1/bin/mta-cli", "--input", projectLocation, "--output", resultPath,
+                    "--target", "quarkus", "--exportCSV", "--batchMode");
         }
 
         try {
@@ -44,7 +54,8 @@ public class MtaExecutor {
             Process process = builder.start();
 
             //Log script output
-            ScriptOutputStreamParser scriptOutputStreamParser = new ScriptOutputStreamParser(process.getInputStream(), LOG::debug);
+            ScriptOutputStreamParser scriptOutputStreamParser =
+                    new ScriptOutputStreamParser(process.getInputStream(), LOG::debug);
             Executors.newSingleThreadExecutor().submit(scriptOutputStreamParser);
 
             //Waiting for successful end of execution
@@ -58,7 +69,7 @@ public class MtaExecutor {
     }
 
     /**
-     * Runs the Red Hat Migration Toolkit for Applications (MTA) to find reflection calls in a library
+     * This method runs the Red Hat Migration Toolkit for Applications (MTA) to find reflection calls in a library
      *
      * @param libraryLocation Path to the jar file which should be analyzed
      * @param resultPath      Path to the directory where the results will be saved
@@ -70,7 +81,14 @@ public class MtaExecutor {
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
 
-        builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat", "--input", libraryLocation, "--output", resultPath, "--target", "reflection", "--exportCSV", "--batchMode", "--skipReports", "--userRulesDirectory", "tools\\custom-mta-rules");
+        builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat",
+                "--input", libraryLocation,
+                "--output", resultPath,
+                "--target", "reflection",
+                "--exportCSV",
+                "--batchMode",
+                "--skipReports",
+                "--userRulesDirectory", "tools\\custom-mta-rules");
 
         try {
             //Start script
@@ -78,7 +96,8 @@ public class MtaExecutor {
             Process process = builder.start();
 
             //Log script output
-            ScriptOutputStreamParser scriptOutputStreamParser = new ScriptOutputStreamParser(process.getInputStream(), LOG::debug);
+            ScriptOutputStreamParser scriptOutputStreamParser =
+                    new ScriptOutputStreamParser(process.getInputStream(), LOG::debug);
             Executors.newSingleThreadExecutor().submit(scriptOutputStreamParser);
 
             //Waiting for successful end of execution
@@ -86,7 +105,8 @@ public class MtaExecutor {
             assert exitCode == 0;
             return true;
         } catch (IOException | InterruptedException e) {
-            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(libraryLocation, "MTA reflection analysis failed."));
+            AnalysisFailureCollector.addAnalysisFailure(
+                    new AnalysisFailureEntry(libraryLocation, "MTA reflection analysis failed."));
             LOG.debug("MTA reflection analysis failed.", e);
             return false;
         }

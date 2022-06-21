@@ -16,49 +16,42 @@
     </properties>
 
     <dependencies>
-
-        <!--Loads external project-->
+        <!--Building Java context from external projects-->
         <dependency>
             <groupId>net.sf.m-m-m</groupId>
             <artifactId>mmm-code-java-impl</artifactId>
             <version>1.0.0-beta7</version>
         </dependency>
-
         <!--CLI-->
         <dependency>
             <groupId>info.picocli</groupId>
             <artifactId>picocli</artifactId>
             <version>4.6.3</version>
         </dependency>
-
         <!--CSV Parser-->
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>5.6</version>
         </dependency>
-
         <!--Template Engine-->
         <dependency>
             <groupId>org.apache.velocity</groupId>
             <artifactId>velocity-engine-core</artifactId>
             <version>2.3</version>
         </dependency>
-
         <!--Parser for extracting class/interface/method definitions from source files-->
         <dependency>
             <groupId>com.thoughtworks.qdox</groupId>
             <artifactId>qdox</artifactId>
             <version>2.0.1</version>
         </dependency>
-
         <!--POM Attribute Reader-->
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-model</artifactId>
             <version>3.8.5</version>
         </dependency>
-
         <!--Maven Resolver for building the dependency tree-->
         <dependency>
             <groupId>org.apache.maven.resolver</groupId>
@@ -95,7 +88,6 @@
             <artifactId>maven-resolver-transport-http</artifactId>
             <version>${maven.resolver.version}</version>
         </dependency>
-
         <!--Logging-->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -124,7 +116,6 @@
                     <release>${maven.compiler.release}</release>
                 </configuration>
             </plugin>
-
             <!--Application Assembler Plugin for generating scripts for starting java apps-->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -134,12 +125,11 @@
                     <programs>
                         <program>
                             <mainClass>com.devonfw.application.Application</mainClass>
-                            <id>app</id>
+                            <id>mhsq</id>
                         </program>
                     </programs>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>

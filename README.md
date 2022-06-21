@@ -18,10 +18,10 @@ This migration helper analyzes Spring Boot projects in terms of migration capabi
 ## Run
 
 **Windows:** \
-`target\appassembler\bin\app.bat -p [projectLocation] -a [appEntryPoint] -m [mavenRepoLocation]`
+`target\appassembler\bin\mhsq.bat -p [projectLocation] -a [appEntryPoint] -m [mavenRepoLocation]`
 
 **Linux:** \
-`./target/appassembler/bin/app -p [projectLocation] -a [appEntryPoint] -m [mavenRepoLocation]`
+`./target/appassembler/bin/mhsq -p [projectLocation] -a [appEntryPoint] -m [mavenRepoLocation]`
 
 ## Options
 ```

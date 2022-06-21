@@ -9,6 +9,7 @@ public class ReflectionUsageInProject {
     private String path;
 
     public ReflectionUsageInProject(String className, String path) {
+
         this.className = className;
         this.path = path;
     }

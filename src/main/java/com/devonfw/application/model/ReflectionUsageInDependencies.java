@@ -7,10 +7,11 @@ import java.util.List;
  */
 public class ReflectionUsageInDependencies {
 
-   String jarFile;
-   List<String> classes;
+    String jarFile;
+    List<String> classes;
 
     public ReflectionUsageInDependencies(String jarFile, List<String> classes) {
+
         this.jarFile = jarFile;
         this.classes = classes;
     }

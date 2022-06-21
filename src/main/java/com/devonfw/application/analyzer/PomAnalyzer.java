@@ -41,14 +41,14 @@ import java.nio.file.Path;
 import java.util.*;
 
 /**
- * Utilities for analyzing the maven project object model
+ * Utilities for analyzing the Maven project object model
  */
 public class PomAnalyzer {
 
     private static final Logger LOG = LoggerFactory.getLogger(PomAnalyzer.class);
 
     /**
-     * Collects java version from a maven project
+     * This method collects the java version from a Maven POM
      *
      * @param locationOfProjectPom Location of project POM
      * @return Java version
@@ -70,7 +70,7 @@ public class PomAnalyzer {
     }
 
     /**
-     * Collects name and version from a maven project
+     * This method collects the name and the version from a Maven POM
      *
      * @param locationOfProjectPom Location of project POM
      * @return Name and version as String
@@ -87,34 +87,16 @@ public class PomAnalyzer {
         return "Project name not available";
     }
 
-    public static void getParentVersions(String locationOfProjectPom) {
-
-        MavenXpp3Reader reader = new MavenXpp3Reader();
-        try {
-            Model model = reader.read(new FileReader(locationOfProjectPom));
-            System.out.println(model.getParent().getGroupId() + model.getParent().getVersion());
-
-            for (org.apache.maven.model.Dependency dependency : model.getDependencies()) {
-                System.out.println(dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + dependency.getVersion() + ":" + dependency.getType());
-                if (dependency.getType().equals("pom")) {
-                    System.out.println(dependency.getArtifactId());
-                }
-            }
-        } catch (XmlPullParserException | IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
     /**
-     * Generates the dependency tree
+     * This method generates the dependency tree of a project
      *
      * @param allArtifactsOfProject List with all artifacts of the project
-     * @param locationOfProjectPom Location of project POM
-     * @param mavenRepoLocation    Location of the local maven repository
+     * @param locationOfProjectPom  Location of project POM
+     * @param mavenRepoLocation     Location of the local maven repository
      * @return List with one DependencyNode per dependency in the project. Enriched with all children which have the scope compile
      */
-    public static List<DependencyNode> generateDependencyTree(List<Artifact> allArtifactsOfProject, File locationOfProjectPom, File mavenRepoLocation) {
+    public static List<DependencyNode> generateDependencyTree(List<Artifact> allArtifactsOfProject,
+                                                              File locationOfProjectPom, File mavenRepoLocation) {
 
         List<DependencyNode> rootNodes = new ArrayList<>();
 
@@ -122,29 +104,49 @@ public class PomAnalyzer {
         Model model = mavenBridge.readModel(locationOfProjectPom);
 
         for (org.apache.maven.model.Dependency dependency : model.getDependencies()) {
+            if (dependency.getScope() != null && dependency.getScope().equals("test")) {
+                continue;
+            }
             String version = dependency.getVersion();
 
             if (version == null) {
-                Optional<Artifact> localArtifact = allArtifactsOfProject.stream().filter(artifact -> artifact.getGroupId().equals(dependency.getGroupId()) && artifact.getArtifactId().equals(dependency.getArtifactId())).findFirst();
+                Optional<Artifact> localArtifact = allArtifactsOfProject.stream()
+                        .filter(artifact -> artifact.getGroupId()
+                                .equals(dependency.getGroupId()) && artifact.getArtifactId()
+                                .equals(dependency.getArtifactId())).findFirst();
                 if (localArtifact.isPresent()) {
                     version = localArtifact.get().getVersion();
                 } else {
-                    AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(dependency.getGroupId() + ":" + dependency.getArtifactId(), "Cannot resolve artifact because the version cannot be found out. The remaining branch of the dependency tree cannot be built further for this dependency."));
-                    LOG.debug("Cannot resolve artifact: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + ". The version cannot be found out. The remaining branch of the dependency tree cannot be built further for this dependency.");
+                    AnalysisFailureCollector.addAnalysisFailure(
+                            new AnalysisFailureEntry(dependency.getGroupId() + ":" + dependency.getArtifactId(),
+                                    "Cannot resolve artifact because the version cannot be found out. " +
+                                            "The remaining branch of the dependency tree cannot be built further for this dependency."));
+                    LOG.debug("Cannot resolve artifact: " +
+                            dependency.getGroupId() + ":" + dependency.getArtifactId() +
+                            ". The version cannot be found out. The remaining branch of the dependency tree cannot be built further for this dependency.");
                     continue;
                 }
             }
+
             DependencyNode rootNode;
             try {
                 if (dependency.getScope() != null && dependency.getScope().equals("test")) {
                     continue;
                 }
-                rootNode = buildBranchesOfRootNode(new DefaultArtifact(dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version), mavenRepoLocation);
+                rootNode = buildBranchesOfRootNode(
+                        new DefaultArtifact(dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version),
+                        mavenRepoLocation);
             } catch (DependencyCollectionException | ArtifactResolutionException e) {
-                AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version, "Could not resolve artifact. The remaining branch of the dependency tree cannot be built further for this dependency."));
-                LOG.debug("Could not resolve artifact: " + dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version + ". The remaining branch of the dependency tree cannot be built further for this dependency.", e);
+                AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(
+                        dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version,
+                        "Could not resolve artifact. The remaining branch of the dependency tree cannot be built further for this dependency."));
+                LOG.debug("Could not resolve artifact: " +
+                                dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + version +
+                                ". The remaining branch of the dependency tree cannot be built further for this dependency.",
+                        e);
                 continue;
             }
+
             if (rootNode == null) {
                 continue;
             }
@@ -154,14 +156,15 @@ public class PomAnalyzer {
     }
 
     /**
-     * Enrichment with all children that have compile or runtime as scope
+     * This method enhances an artifact with all children that have compile or runtime as scope
      *
      * @param artifact          The root dependency for enrichment
      * @param mavenRepoLocation Location of the local maven repository
      * @return DependencyNode enriched with all children which have compile or runtime as scope
      * @throws DependencyCollectionException If maven dependency is not available
      */
-    private static DependencyNode buildBranchesOfRootNode(Artifact artifact, File mavenRepoLocation) throws DependencyCollectionException, ArtifactResolutionException {
+    private static DependencyNode buildBranchesOfRootNode(Artifact artifact, File mavenRepoLocation)
+            throws DependencyCollectionException, ArtifactResolutionException {
 
         RepositorySystem system = newRepositorySystem();
         DefaultRepositorySystemSession session = newRepositorySystemSession(system, mavenRepoLocation);
@@ -183,24 +186,28 @@ public class PomAnalyzer {
     }
 
     /**
-     * Creates a java context based on the @SpringBootApplication class and returns the loaded dependencies
+     * This method creates a java context based on the @SpringBootApplication class and returns the loaded dependencies
      *
      * @param springBootApp Path of the @SpringBootApplication class
      * @param inputProject  Location of the project
      * @param mavenRepo     Location of the local maven repository
      * @return List with dependencies
      */
-    public static List<Artifact> collectAllApplicationStartupLibrariesOfProject(Path springBootApp, File inputProject, File mavenRepo) {
+    public static List<Artifact> collectAllApplicationStartupLibrariesOfProject(Path springBootApp, File inputProject,
+                                                                                File mavenRepo) {
 
         List<Artifact> applicationStartupLibrariesOfProject = new ArrayList<>();
 
-        MavenDependencyCollector dependencyCollector = new MavenDependencyCollector(new MavenBridgeImpl(mavenRepo), false, true, null);
-        JavaContext context = JavaSourceProviderUsingMaven.createFromLocalMavenProject(inputProject, dependencyCollector);
+        MavenDependencyCollector dependencyCollector =
+                new MavenDependencyCollector(new MavenBridgeImpl(mavenRepo), false, true, null);
+        JavaContext context =
+                JavaSourceProviderUsingMaven.createFromLocalMavenProject(inputProject, dependencyCollector);
         String fqnOfClass = getFQN(springBootApp);
         try {
             context.getClassLoader().loadClass(fqnOfClass);
         } catch (ClassNotFoundException e) {
-            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(fqnOfClass, "Could not load class. ClassNotFoundException was thrown."));
+            AnalysisFailureCollector.addAnalysisFailure(
+                    new AnalysisFailureEntry(fqnOfClass, "Could not load class. ClassNotFoundException was thrown."));
             LOG.debug("Could not find class", e);
         }
 
@@ -210,10 +217,12 @@ public class PomAnalyzer {
             if (urlWithoutType.endsWith(".jar")) {
                 try {
                     Model model = new MavenBridgeImpl().readEffectiveModelFromLocation(new File(urlWithoutType), false);
-                    Artifact artifact = new DefaultArtifact(model.getGroupId() + ":" + model.getArtifactId() + ":" + model.getVersion());
+                    Artifact artifact = new DefaultArtifact(
+                            model.getGroupId() + ":" + model.getArtifactId() + ":" + model.getVersion());
                     applicationStartupLibrariesOfProject.add(artifact);
                 } catch (Exception e) {
-                    AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(urlWithoutType, "Failed to resolve effective POM this artifact"));
+                    AnalysisFailureCollector.addAnalysisFailure(
+                            new AnalysisFailureEntry(urlWithoutType, "Failed to resolve effective POM of this artifact"));
                     LOG.debug("Failed to resolve effective POM this artifact: " + urlWithoutType, e);
                 }
             }
@@ -262,7 +271,7 @@ public class PomAnalyzer {
     }
 
     /**
-     * Generates a list of all artifacts of the given nodes
+     * This method generates a list of all artifacts of the given nodes
      *
      * @param rootNodes         Nodes to analyze
      * @param mavenRepoLocation Location of the local maven repository
@@ -279,27 +288,34 @@ public class PomAnalyzer {
     }
 
     /**
-     * Generates a list of all artifacts of the given node recursively
+     * This method generates a list of all artifacts of the given node recursively
      *
      * @param node                  Node to analyze
      * @param mavenRepoLocation     Location of the local maven repository
      * @param allArtifactsOfProject List of all artifacts
      */
-    private static List<Artifact> findArtifactsOfNode(DependencyNode node, File mavenRepoLocation, List<Artifact> allArtifactsOfProject) {
+    private static List<Artifact> findArtifactsOfNode(DependencyNode node, File mavenRepoLocation,
+                                                      List<Artifact> allArtifactsOfProject) {
 
         List<DependencyNode> childrenFromNode = node.getChildren();
         for (DependencyNode child : childrenFromNode) {
             Artifact artifact = child.getArtifact();
             boolean artifactAlreadyInList = allArtifactsOfProject
                     .stream()
-                    .anyMatch(listEntry -> listEntry.getGroupId().equals(artifact.getGroupId()) && listEntry.getArtifactId().equals(artifact.getArtifactId()) && listEntry.getVersion().equals(artifact.getVersion()));
+                    .anyMatch(listEntry -> listEntry.getGroupId()
+                            .equals(artifact.getGroupId()) && listEntry.getArtifactId()
+                            .equals(artifact.getArtifactId()) && listEntry.getVersion().equals(artifact.getVersion()));
             if (!artifactAlreadyInList) {
                 File file;
                 try {
                     file = tryFindJarInLocalMavenRepo(artifact, mavenRepoLocation);
                 } catch (ArtifactResolutionException e) {
-                    AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion(), "Could not find jar file in local maven repository. Reflection analysis of this artifact is not possible."));
-                    LOG.debug("Could not find jar file in local maven repository for artifact: " + artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion() + ". Reflection analysis of this artifact is not possible.");
+                    AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(
+                            artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion(),
+                            "Could not find jar file in local maven repository. Reflection analysis of this artifact is not possible."));
+                    LOG.debug("Could not find jar file in local maven repository for artifact: " +
+                            artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion() +
+                            ". Reflection analysis of this artifact is not possible.");
                     continue;
                 }
                 Artifact artifactWithFile = artifact.setFile(file);
@@ -311,14 +327,15 @@ public class PomAnalyzer {
     }
 
     /**
-     * Tries to find the java archive of the specified artifact in the local Maven repository and in the online repository.
+     * This method tries to find the java archive of the specified artifact in the local Maven repository and in the online repository
      *
      * @param artifact          Artifact to find
      * @param mavenRepoLocation Location of the local maven repository
      * @return The searched jar file or null
      * @throws ArtifactResolutionException Throws Exception when artifact is not resolvable
      */
-    public static File tryFindJarInLocalMavenRepo(Artifact artifact, File mavenRepoLocation) throws ArtifactResolutionException {
+    public static File tryFindJarInLocalMavenRepo(Artifact artifact, File mavenRepoLocation)
+            throws ArtifactResolutionException {
 
         File groupFolder = new File(mavenRepoLocation, artifact.getGroupId().replace('.', '/'));
         File artifactFolder = new File(groupFolder, artifact.getArtifactId());
@@ -344,14 +361,15 @@ public class PomAnalyzer {
     }
 
     /**
-     * Tries to resolve the specified artifact in the online maven repository and store it in the local maven repository
+     * This method tries to resolve the specified artifact in the online maven repository and stores it in the local maven repository
      *
      * @param artifact          Artifact to resolve
      * @param mavenRepoLocation Location of the local maven repository
      * @return The successfully resolved artifact
      * @throws ArtifactResolutionException If the artifact is not resolvable
      */
-    private static Artifact resolveArtifactFromMavenOnlineRepository(Artifact artifact, File mavenRepoLocation) throws ArtifactResolutionException {
+    private static Artifact resolveArtifactFromMavenOnlineRepository(Artifact artifact, File mavenRepoLocation)
+            throws ArtifactResolutionException {
 
         RepositorySystem system = newRepositorySystem();
         DefaultRepositorySystemSession session = newRepositorySystemSession(system, mavenRepoLocation);
@@ -365,7 +383,7 @@ public class PomAnalyzer {
 
 
     /**
-     * Initiates the repository system
+     * This method initiates the repository system
      *
      * @return repository system
      */
@@ -388,11 +406,12 @@ public class PomAnalyzer {
     }
 
     /**
-     * Initiate the repository system session
+     * This method initiates the repository system session
      *
      * @return repository system session
      */
-    private static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system, File mavenRepoLocation) {
+    private static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system,
+                                                                             File mavenRepoLocation) {
 
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
@@ -403,12 +422,13 @@ public class PomAnalyzer {
     }
 
     /**
-     * Initiate remote repositories
+     * This method initiates the remote repositories
      *
      * @return List of remote repositories
      */
     private static List<RemoteRepository> newRepositories() {
 
-        return new ArrayList<>(Collections.singletonList(new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2/").build()));
+        return new ArrayList<>(Collections.singletonList(
+                new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2/").build()));
     }
 }

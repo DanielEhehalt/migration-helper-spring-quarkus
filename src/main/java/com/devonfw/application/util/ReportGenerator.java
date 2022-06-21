@@ -2,7 +2,8 @@ package com.devonfw.application.util;
 
 import com.devonfw.application.analyzer.PomAnalyzer;
 import com.devonfw.application.collector.AnalysisFailureCollector;
-import com.devonfw.application.model.BlacklistEntry;
+import com.devonfw.application.model.MtaIssue;
+import com.devonfw.application.model.ProjectDependency;
 import com.devonfw.application.model.ReflectionUsageInDependencies;
 import com.devonfw.application.model.ReflectionUsageInProject;
 import org.apache.velocity.Template;
@@ -17,6 +18,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Generates HTML report
@@ -26,28 +28,32 @@ public class ReportGenerator {
     private static final Logger LOG = LoggerFactory.getLogger(ReportGenerator.class);
 
     /**
-     * Generates HTML report
+     * This method generates the HTML report
      *
-     * @param blacklist                     Blacklisted Dependencies
+     * @param dependencyBlacklist           Blacklisted Dependencies
      * @param reflectionUsageInProject      List of reflection usage in the project
      * @param reflectionUsageInDependencies List of reflection usage in the project dependencies
      * @param dependencyNodes               List with the root nodes of the dependency tree
      * @param locationOfPom                 Location of project POM
      * @param resultPath                    Path to the directory where the report will be saved
      */
-    public static void generateReport(List<BlacklistEntry> blacklist,
+    public static void generateReport(List<ProjectDependency> dependencyBlacklist,
+                                      Integer totalJavaClassesScanned,
+                                      List<MtaIssue> mtaIssuesList,
                                       List<ReflectionUsageInProject> reflectionUsageInProject,
                                       List<ReflectionUsageInDependencies> reflectionUsageInDependencies,
                                       List<DependencyNode> dependencyNodes,
                                       String locationOfPom,
-                                      String resultPath) {
+                                      String resultPath,
+                                      Boolean withoutReflectionUsageOfDependencies) {
 
         LOG.info("Generate report.html");
 
         //Configuration for template location under src/main/resources
         Properties properties = new Properties();
         properties.setProperty("resource.loaders", "class");
-        properties.setProperty("resource.loader.class.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+        properties.setProperty("resource.loader.class.class",
+                "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 
         //Init Velocity
         Velocity.init(properties);
@@ -57,10 +63,15 @@ public class ReportGenerator {
         //Insert dynamic values
         context.put("projectName", PomAnalyzer.getNameAndVersionFromProject(locationOfPom));
         context.put("javaVersion", PomAnalyzer.getJavaVersionFromProject(locationOfPom));
-        context.put("blacklist", blacklist.iterator());
-        context.put("blacklistSize", blacklist.size());
+        List<MtaIssue> generalIssues = mtaIssuesList.stream().filter(MtaIssue::getGeneralIssue).collect(Collectors.toUnmodifiableList());
+        context.put("generalIssues", generalIssues.iterator());
+        context.put("generalIssuesListSize", generalIssues.size());
+        context.put("dependencyBlacklist", dependencyBlacklist.iterator());
+        context.put("dependencyBlacklistSize", dependencyBlacklist.size());
+        context.put("totalJavaClassesScanned", totalJavaClassesScanned);
         context.put("reflectionUsageInProjectList", reflectionUsageInProject.iterator());
         context.put("reflectionUsageInProjectListSize", reflectionUsageInProject.size());
+        context.put("withoutReflectionUsageOfDependencies", withoutReflectionUsageOfDependencies);
         context.put("dependencyTree", printDependencyTree(dependencyNodes, reflectionUsageInDependencies).iterator());
         context.put("reflectionUsageInDependenciesListSize", reflectionUsageInDependencies.size());
         context.put("analysisFailuresList", AnalysisFailureCollector.getAnalysisFailures());
@@ -81,13 +92,14 @@ public class ReportGenerator {
     }
 
     /**
-     * Builds the dependency tree as a string and extends it with the found reflection usages
+     * This method builds the dependency tree as a string and extends it with the found reflection usages
      *
      * @param rootNodes                     Root nodes of the dependency tree
      * @param reflectionUsageInDependencies List with detected reflection usage in dependencies
      * @return Dependency tree root nodes
      */
-    private static List<String> printDependencyTree(List<DependencyNode> rootNodes, List<ReflectionUsageInDependencies> reflectionUsageInDependencies) {
+    private static List<String> printDependencyTree(List<DependencyNode> rootNodes,
+                                                    List<ReflectionUsageInDependencies> reflectionUsageInDependencies) {
 
         List<String> branches = new ArrayList<>();
         List<String> alwaysAppended = new ArrayList<>();
@@ -95,14 +107,20 @@ public class ReportGenerator {
         rootNodes.forEach(node -> {
             StringBuilder stringBuilder = new StringBuilder();
             Artifact artifact = node.getArtifact();
-            String artifactAsString = artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
-            Optional<ReflectionUsageInDependencies> optionalReflectionUsageInDependency = reflectionUsageInDependencies.stream().filter(reflectionUsageInDependency -> reflectionUsageInDependency.getJarFile().equals(artifactAsString)).findAny();
+            String artifactAsString =
+                    artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
+            Optional<ReflectionUsageInDependencies> optionalReflectionUsageInDependency =
+                    reflectionUsageInDependencies.stream()
+                            .filter(reflectionUsageInDependency -> reflectionUsageInDependency.getJarFile()
+                                    .equals(artifactAsString)).findAny();
             stringBuilder.append("<br>");
             if (optionalReflectionUsageInDependency.isEmpty()) {
-                stringBuilder.append(artifact.getGroupId()).append(":").append(artifact.getArtifactId()).append(":").append(artifact.getVersion()).append(" (0)");
+                stringBuilder.append(artifact.getGroupId()).append(":").append(artifact.getArtifactId()).append(":")
+                        .append(artifact.getVersion()).append(" (0)");
                 alwaysAppended.add(artifactAsString);
             } else {
-                stringBuilder.append(artifactAsString).append(" (").append(optionalReflectionUsageInDependency.get().getClasses().size()).append(")");
+                stringBuilder.append(artifactAsString).append(" (")
+                        .append(optionalReflectionUsageInDependency.get().getClasses().size()).append(")");
                 alwaysAppended.add(artifactAsString);
             }
             buildBranchAsString(node, reflectionUsageInDependencies, stringBuilder, 1, alwaysAppended);
@@ -113,7 +131,8 @@ public class ReportGenerator {
     }
 
     /**
-     * Builds a branch of the dependency tree as a string and extends it with the found reflection usages recursively. Libraries that appear more than once are displayed shortened
+     * This method builds a branch of the dependency tree as a string and extends it with the found reflection usages recursively. Libraries that
+     * appear more than once are displayed shortened
      *
      * @param node                          Start node to build the branch
      * @param reflectionUsageInDependencies List with detected reflection usage in dependencies
@@ -121,23 +140,33 @@ public class ReportGenerator {
      * @param level                         Level for setting the text indent
      * @param alreadyAppended               List with already attached dependencies
      */
-    private static void buildBranchAsString(DependencyNode node, List<ReflectionUsageInDependencies> reflectionUsageInDependencies, StringBuilder stringBuilder, Integer level, List<String> alreadyAppended) {
+    private static void buildBranchAsString(DependencyNode node,
+                                            List<ReflectionUsageInDependencies> reflectionUsageInDependencies,
+                                            StringBuilder stringBuilder, Integer level, List<String> alreadyAppended) {
 
         for (DependencyNode child : node.getChildren()) {
             Artifact artifact = child.getArtifact();
-            String artifactAsString = artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
-            Optional<ReflectionUsageInDependencies> optionalReflectionUsageInDependency = reflectionUsageInDependencies.stream().filter(reflectionUsageInDependency -> reflectionUsageInDependency.getJarFile().equals(artifactAsString)).findAny();
+            String artifactAsString =
+                    artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
+            Optional<ReflectionUsageInDependencies> optionalReflectionUsageInDependency =
+                    reflectionUsageInDependencies.stream()
+                            .filter(reflectionUsageInDependency -> reflectionUsageInDependency.getJarFile()
+                                    .equals(artifactAsString)).findAny();
             stringBuilder.append("<br>");
-            stringBuilder.append("&emsp;".repeat(Math.max(0, level)));
+            stringBuilder.append("|&emsp;".repeat(Math.max(0, level)));
 
             if (optionalReflectionUsageInDependency.isEmpty()) {
-                stringBuilder.append(artifact.getGroupId()).append(":").append(artifact.getArtifactId()).append(":").append(artifact.getVersion()).append(" (0)");
+                stringBuilder.append(artifact.getGroupId()).append(":").append(artifact.getArtifactId()).append(":")
+                        .append(artifact.getVersion()).append(" (0)");
                 alreadyAppended.add(artifactAsString);
             } else if (alreadyAppended.contains(artifactAsString)) {
-                stringBuilder.append(artifact.getGroupId()).append(":").append(artifact.getArtifactId()).append(":").append(artifact.getVersion()).append(" (").append(optionalReflectionUsageInDependency.get().getClasses().size()).append(")").append("*");
+                stringBuilder.append(artifact.getGroupId()).append(":").append(artifact.getArtifactId()).append(":")
+                        .append(artifact.getVersion()).append(" (")
+                        .append(optionalReflectionUsageInDependency.get().getClasses().size()).append(")").append("*");
                 continue;
             } else {
-                stringBuilder.append(artifactAsString).append(" (").append(optionalReflectionUsageInDependency.get().getClasses().size()).append(")");
+                stringBuilder.append(artifactAsString).append(" (")
+                        .append(optionalReflectionUsageInDependency.get().getClasses().size()).append(")");
                 alreadyAppended.add(artifactAsString);
             }
             buildBranchAsString(child, reflectionUsageInDependencies, stringBuilder, level + 1, alreadyAppended);
