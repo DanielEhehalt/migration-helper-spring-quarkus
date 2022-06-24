@@ -1,5 +1,6 @@
 package com.devonfw.application.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,7 +13,10 @@ public class ProjectDependency {
     String version;
     List<String> packages;
     List<String> classes;
+    List<String> allPossiblePackagesIncludingDependencies;
+    List<String> allPossibleClassesIncludingDependencies;
     Integer occurrenceInProjectClasses;
+    Boolean isBlacklisted;
     String descriptionIfBlacklisted;
 
     public ProjectDependency(String groupId, String artifactId, String version, List<String> packages,
@@ -23,6 +27,9 @@ public class ProjectDependency {
         this.version = version;
         this.packages = packages;
         this.classes = classes;
+        this.allPossiblePackagesIncludingDependencies = new ArrayList<>();
+        this.allPossibleClassesIncludingDependencies = new ArrayList<>();
+        this.isBlacklisted = false;
         this.occurrenceInProjectClasses = 0;
     }
 
@@ -66,6 +73,22 @@ public class ProjectDependency {
         this.classes = classes;
     }
 
+    public List<String> getAllPossiblePackagesIncludingDependencies() {
+        return allPossiblePackagesIncludingDependencies;
+    }
+
+    public void setAllPossiblePackagesIncludingDependencies(List<String> allPossiblePackagesIncludingDependencies) {
+        this.allPossiblePackagesIncludingDependencies = allPossiblePackagesIncludingDependencies;
+    }
+
+    public List<String> getAllPossibleClassesIncludingDependencies() {
+        return allPossibleClassesIncludingDependencies;
+    }
+
+    public void setAllPossibleClassesIncludingDependencies(List<String> allPossibleClassesIncludingDependencies) {
+        this.allPossibleClassesIncludingDependencies = allPossibleClassesIncludingDependencies;
+    }
+
     public Integer getOccurrenceInProjectClasses() {
         return occurrenceInProjectClasses;
     }
@@ -76,6 +99,14 @@ public class ProjectDependency {
 
     public void incrementOccurrenceInProjectClasses() {
         this.occurrenceInProjectClasses++;
+    }
+
+    public Boolean getBlacklisted() {
+        return isBlacklisted;
+    }
+
+    public void setBlacklisted(Boolean blacklisted) {
+        isBlacklisted = blacklisted;
     }
 
     public String getDescriptionIfBlacklisted() {

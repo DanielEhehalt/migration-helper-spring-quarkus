@@ -49,6 +49,7 @@
 
     #if(!$withoutReflectionUsageOfDependencies)
         <h2>Reflection usage in dependencies as dependency tree (found: $reflectionUsageInDependenciesListSize)</h2>
+        <p>To shorten the tree, duplicate entries are marked with an asterisk and are not further executed.</p>
         #foreach($branch in $dependencyTree)
             $branch
         #end

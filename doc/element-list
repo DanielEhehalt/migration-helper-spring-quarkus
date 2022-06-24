@@ -1,5 +1,5 @@
 com.devonfw.application
-com.devonfw.application.analyzer
 com.devonfw.application.collector
 com.devonfw.application.model
+com.devonfw.application.operator
 com.devonfw.application.util

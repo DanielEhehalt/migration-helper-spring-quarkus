@@ -30,9 +30,20 @@
         </rule>
         <rule id="devon4j-modules-quarkus-0001">
             <when>
-                <project>
-                    <artifact artifactId="devon4j-http-{*}" groupId="com.devonfw.java.modules"/>
-                </project>
+                <or>
+                    <project>
+                        <artifact artifactId="devon4j-http-client" groupId="com.devonfw.java.modules"/>
+                    </project>
+                    <project>
+                        <artifact artifactId="devon4j-http-client-rest" groupId="com.devonfw.java.modules"/>
+                    </project>
+                    <project>
+                        <artifact artifactId="devon4j-cxf-client" groupId="com.devonfw.java.modules"/>
+                    </project>
+                    <project>
+                        <artifact artifactId="devon4j-cxf-client-rest" groupId="com.devonfw.java.modules"/>
+                    </project>
+                </or>
             </when>
             <perform>
                 <hint title="Devon4j http modules must be replaced with the quarkus REST client. https://quarkus.io/guides/spring-web"
@@ -44,9 +55,17 @@
         </rule>
         <rule id="devon4j-modules-quarkus-0002">
             <when>
-                <project>
-                    <artifact artifactId="devon4j-security{*}" groupId="com.devonfw.java.modules"/>
-                </project>
+                <or>
+                    <project>
+                        <artifact artifactId="devon4j-security" groupId="com.devonfw.java.modules"/>
+                    </project>
+                    <project>
+                        <artifact artifactId="devon4j-security-jwt" groupId="com.devonfw.java.modules"/>
+                    </project>
+                    <project>
+                        <artifact artifactId="devon4j-security-keystore" groupId="com.devonfw.java.modules"/>
+                    </project>
+                </or>
             </when>
             <perform>
                 <hint title="Devon4j module security must be replaced with Quarkus security extension."
@@ -58,9 +77,20 @@
         </rule>
         <rule id="devon4j-modules-quarkus-0003">
             <when>
-                <project>
-                    <artifact artifactId="devon4j-jpa{*}" groupId="com.devonfw.java.modules"/>
-                </project>
+                <or>
+                    <project>
+                        <artifact artifactId="devon4j-jpa-basic" groupId="com.devonfw.java.modules"/>
+                    </project>
+                    <project>
+                        <artifact artifactId="devon4j-jpa-dao" groupId="com.devonfw.java.modules"/>
+                    </project>
+                    <project>
+                        <artifact artifactId="devon4j-jpa-envers" groupId="com.devonfw.java.modules"/>
+                    </project>
+                    <project>
+                        <artifact artifactId="devon4j-jpa-spring-data" groupId="com.devonfw.java.modules"/>
+                    </project>
+                </or>
             </when>
             <perform>
                 <hint title="Devon4j JPA modules must be replaced by a Quarkus JPA extension or by the vanilla spring-data module. The devon4j-project recommend the use of vanilla spring-data."
@@ -72,9 +102,17 @@
         </rule>
         <rule id="devon4j-modules-quarkus-0004">
             <when>
-                <project>
-                    <artifact artifactId="devon4j-beanmapping{*}" groupId="com.devonfw.java.modules"/>
-                </project>
+                <or>
+                    <project>
+                        <artifact artifactId="devon4j-beanmapping" groupId="com.devonfw.java.modules"/>
+                    </project>
+                    <project>
+                        <artifact artifactId="devon4j-beanmapping-dozer" groupId="com.devonfw.java.modules"/>
+                    </project>
+                    <project>
+                        <artifact artifactId="devon4j-beanmapping-orika" groupId="com.devonfw.java.modules"/>
+                    </project>
+                </or>
             </when>
             <perform>
                 <hint title="Devon4j beanmapping modules must be replaced by MapStruct. https://github.com/devonfw/devon4j/blob/master/documentation/quarkus/guide-beanmapping-quarkus.asciidoc"

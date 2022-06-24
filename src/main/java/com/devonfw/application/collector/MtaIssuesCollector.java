@@ -1,7 +1,6 @@
 package com.devonfw.application.collector;
 
 import com.devonfw.application.model.MtaIssue;
-import com.devonfw.application.model.ProjectDependency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
@@ -48,60 +47,21 @@ public class MtaIssuesCollector {
         }
 
         //Enhancing the found incompatibilities with the corresponding groupId and artifactId
-        File locationOfBuiltInMtaRules = new File(System.getProperty("user.dir") + "\\tools\\mta-cli-5.2.1\\rules\\migration-core\\quarkus");
+        File locationOfBuiltInMtaRules = new File(System.getProperty("user.dir") +
+                File.separator + "tools" + File.separator + "mta-cli-5.2.1" + File.separator + "rules" + File.separator + "migration-core" + File.separator + "quarkus");
         mtaIssuesList = resolveGroupIdAndArtifactIdFromMtaRules(mtaIssuesList, locationOfBuiltInMtaRules);
 
-        File locationOfCustomMtaRules = new File(System.getProperty("user.dir") + "\\tools\\custom-mta-rules");
+        File locationOfCustomMtaRules = new File(System.getProperty("user.dir") + File.separator + "tools" + File.separator + "custom-mta-rules");
         mtaIssuesList = resolveGroupIdAndArtifactIdFromMtaRules(mtaIssuesList, locationOfCustomMtaRules);
 
         return mtaIssuesList;
     }
 
-    public static List<ProjectDependency> generateDependencyBlacklistFromMtaIssuesList(List<MtaIssue> mtaIssuesList,
-                                                                                       List<ProjectDependency> projectDependencies) {
-        List<ProjectDependency> dependencyBlacklist = new ArrayList<>();
-
-        for (MtaIssue mtaIssue : mtaIssuesList) {
-            boolean mtaIssueIsGeneralIssue = true;
-
-            for (MtaIssue.MavenIdentifier mavenIdentifier : mtaIssue.getMavenIdentifiers()) {
-                Optional<ProjectDependency> optionalProjectDependency = projectDependencies.stream()
-                        .filter(projectDependency -> projectDependency.getGroupId()
-                                .equals(mavenIdentifier.getGroupId()) && projectDependency.getArtifactId()
-                                .equals(mavenIdentifier.getArtifactId())).findFirst();
-                if (optionalProjectDependency.isPresent()) {
-                    mtaIssueIsGeneralIssue = false;
-                    ProjectDependency projectDependency = optionalProjectDependency.get();
-                    projectDependency.setDescriptionIfBlacklisted(mtaIssue.getDescription());
-                    if (!dependencyBlacklist.contains(projectDependency)) {
-                        dependencyBlacklist.add(projectDependency);
-                    }
-                }
-            }
-            for (String javaPackage : mtaIssue.getPackages()) {
-                Optional<ProjectDependency> optionalProjectDependency = projectDependencies.stream()
-                        .filter(projectDependency -> projectDependency.getClasses().contains(javaPackage) || projectDependency.getPackages()
-                                .contains(javaPackage)).findFirst();
-                if (optionalProjectDependency.isPresent()) {
-                    mtaIssueIsGeneralIssue = false;
-                    ProjectDependency projectDependency = optionalProjectDependency.get();
-                    projectDependency.setDescriptionIfBlacklisted(mtaIssue.getDescription());
-                    if (!dependencyBlacklist.contains(projectDependency)) {
-                        dependencyBlacklist.add(projectDependency);
-                    }
-                }
-            }
-            if (mtaIssueIsGeneralIssue) {
-                mtaIssue.setGeneralIssue(true);
-            }
-        }
-        return dependencyBlacklist;
-    }
-
     /**
      * This method parses the rules (xml files) stored in the MTA to enhance the MTA issues with the blacklisted artifacts and packages.
      *
-     * @param mtaIssuesList MTA issues list to compare
+     * @param mtaIssuesList    MTA issues list to compare
+     * @param locationMTARules Location of the MTA rules
      * @return Map with the rule ids and the corresponding groupId and artifactId
      */
     public static List<MtaIssue> resolveGroupIdAndArtifactIdFromMtaRules(List<MtaIssue> mtaIssuesList, File locationMTARules) {

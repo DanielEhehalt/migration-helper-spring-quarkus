@@ -1,6 +1,6 @@
 package com.devonfw.application.util;
 
-import com.devonfw.application.analyzer.PomAnalyzer;
+import com.devonfw.application.operator.PomOperator;
 import com.devonfw.application.collector.AnalysisFailureCollector;
 import com.devonfw.application.model.MtaIssue;
 import com.devonfw.application.model.ProjectDependency;
@@ -14,6 +14,7 @@ import org.eclipse.aether.graph.DependencyNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -30,12 +31,15 @@ public class ReportGenerator {
     /**
      * This method generates the HTML report
      *
-     * @param dependencyBlacklist           Blacklisted Dependencies
-     * @param reflectionUsageInProject      List of reflection usage in the project
-     * @param reflectionUsageInDependencies List of reflection usage in the project dependencies
-     * @param dependencyNodes               List with the root nodes of the dependency tree
-     * @param locationOfPom                 Location of project POM
-     * @param resultPath                    Path to the directory where the report will be saved
+     * @param dependencyBlacklist                  Blacklisted Dependencies
+     * @param totalJavaClassesScanned              Total classes scanned by the occurrence measurement
+     * @param reflectionUsageInProject             List of reflection usage in the project
+     * @param mtaIssuesList                        Found issues of the MTA analysis
+     * @param reflectionUsageInDependencies        List of reflection usage in the project dependencies
+     * @param dependencyNodes                      List with the root nodes of the dependency tree
+     * @param projectPomLocation                   Location of project POM
+     * @param resultFolderLocation                 Path to the directory where the report will be saved
+     * @param withoutReflectionUsageOfDependencies CLI option
      */
     public static void generateReport(List<ProjectDependency> dependencyBlacklist,
                                       Integer totalJavaClassesScanned,
@@ -43,8 +47,8 @@ public class ReportGenerator {
                                       List<ReflectionUsageInProject> reflectionUsageInProject,
                                       List<ReflectionUsageInDependencies> reflectionUsageInDependencies,
                                       List<DependencyNode> dependencyNodes,
-                                      String locationOfPom,
-                                      String resultPath,
+                                      String projectPomLocation,
+                                      String resultFolderLocation,
                                       Boolean withoutReflectionUsageOfDependencies) {
 
         LOG.info("Generate report.html");
@@ -61,8 +65,8 @@ public class ReportGenerator {
         Template template = Velocity.getTemplate("report-template.vm");
 
         //Insert dynamic values
-        context.put("projectName", PomAnalyzer.getNameAndVersionFromProject(locationOfPom));
-        context.put("javaVersion", PomAnalyzer.getJavaVersionFromProject(locationOfPom));
+        context.put("projectName", PomOperator.getProjectIdentifierFromPomFile(projectPomLocation));
+        context.put("javaVersion", PomOperator.getJavaVersionFromPomFile(projectPomLocation));
         List<MtaIssue> generalIssues = mtaIssuesList.stream().filter(MtaIssue::getGeneralIssue).collect(Collectors.toUnmodifiableList());
         context.put("generalIssues", generalIssues.iterator());
         context.put("generalIssuesListSize", generalIssues.size());
@@ -83,7 +87,7 @@ public class ReportGenerator {
 
         //Generate html
         try {
-            FileWriter fw = new FileWriter(resultPath + "/report.html");
+            FileWriter fw = new FileWriter(resultFolderLocation + File.separator + "report.html");
             fw.write(sw.toString());
             fw.close();
         } catch (IOException e) {
@@ -107,12 +111,9 @@ public class ReportGenerator {
         rootNodes.forEach(node -> {
             StringBuilder stringBuilder = new StringBuilder();
             Artifact artifact = node.getArtifact();
-            String artifactAsString =
-                    artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
-            Optional<ReflectionUsageInDependencies> optionalReflectionUsageInDependency =
-                    reflectionUsageInDependencies.stream()
-                            .filter(reflectionUsageInDependency -> reflectionUsageInDependency.getJarFile()
-                                    .equals(artifactAsString)).findAny();
+            String artifactAsString = artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
+            Optional<ReflectionUsageInDependencies> optionalReflectionUsageInDependency = reflectionUsageInDependencies.stream()
+                    .filter(reflectionUsageInDependency -> reflectionUsageInDependency.getJarFile().equals(artifactAsString)).findAny();
             stringBuilder.append("<br>");
             if (optionalReflectionUsageInDependency.isEmpty()) {
                 stringBuilder.append(artifact.getGroupId()).append(":").append(artifact.getArtifactId()).append(":")
@@ -140,18 +141,14 @@ public class ReportGenerator {
      * @param level                         Level for setting the text indent
      * @param alreadyAppended               List with already attached dependencies
      */
-    private static void buildBranchAsString(DependencyNode node,
-                                            List<ReflectionUsageInDependencies> reflectionUsageInDependencies,
+    private static void buildBranchAsString(DependencyNode node, List<ReflectionUsageInDependencies> reflectionUsageInDependencies,
                                             StringBuilder stringBuilder, Integer level, List<String> alreadyAppended) {
 
         for (DependencyNode child : node.getChildren()) {
             Artifact artifact = child.getArtifact();
-            String artifactAsString =
-                    artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
-            Optional<ReflectionUsageInDependencies> optionalReflectionUsageInDependency =
-                    reflectionUsageInDependencies.stream()
-                            .filter(reflectionUsageInDependency -> reflectionUsageInDependency.getJarFile()
-                                    .equals(artifactAsString)).findAny();
+            String artifactAsString = artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion();
+            Optional<ReflectionUsageInDependencies> optionalReflectionUsageInDependency = reflectionUsageInDependencies.stream()
+                    .filter(reflectionUsageInDependency -> reflectionUsageInDependency.getJarFile().equals(artifactAsString)).findAny();
             stringBuilder.append("<br>");
             stringBuilder.append("|&emsp;".repeat(Math.max(0, level)));
 

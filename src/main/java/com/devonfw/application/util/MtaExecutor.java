@@ -17,8 +17,8 @@ public class MtaExecutor {
     private static final Logger LOG = LoggerFactory.getLogger(MtaExecutor.class);
 
     /**
-     * This method runs the Red Hat Migration Toolkit for Applications (MTA) to find incompatible dependencies. The
-     * result of the analysis is temporarily saved in the results folder
+     * This method runs the Red Hat Migration Toolkit for Applications (MTA) to find incompatible dependencies. The result of the analysis is
+     * temporarily saved in the results folder
      *
      * @param projectLocation Path to the project which should be analyzed
      * @param resultPath      Path to the directory where the results will be saved
@@ -26,27 +26,21 @@ public class MtaExecutor {
      */
     public static boolean executeMtaForProject(String projectLocation, String resultPath) {
 
-        boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
-
         ProcessBuilder builder = new ProcessBuilder();
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
 
-        if (isWindows) {
-            builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat",
-                    "--input", projectLocation,
-                    "--output", resultPath,
-                    "--target", "quarkus",
-                    "--target", "reflection",
-                    "--exportCSV",
-                    "--batchMode",
-                    "--skipReports",
-                    "--sourceMode",
-                    "--userRulesDirectory", "tools\\custom-mta-rules");
-        } else {
-            builder.command("./tools/mta-cli-5.2.1/bin/mta-cli", "--input", projectLocation, "--output", resultPath,
-                    "--target", "quarkus", "--exportCSV", "--batchMode");
-        }
+        builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",
+                "--input", projectLocation,
+                "--output", resultPath,
+                "--target", "quarkus",
+                "--target", "reflection",
+                "--exportCSV",
+                "--batchMode",
+                "--skipReports",
+                "--overwrite",
+                "--sourceMode",
+                "--userRulesDirectory", "tools" + File.separator + "custom-mta-rules");
 
         try {
             //Start script
@@ -54,8 +48,7 @@ public class MtaExecutor {
             Process process = builder.start();
 
             //Log script output
-            ScriptOutputStreamParser scriptOutputStreamParser =
-                    new ScriptOutputStreamParser(process.getInputStream(), LOG::debug);
+            ScriptOutputStreamParser scriptOutputStreamParser = new ScriptOutputStreamParser(process.getInputStream(), LOG::debug);
             Executors.newSingleThreadExecutor().submit(scriptOutputStreamParser);
 
             //Waiting for successful end of execution
@@ -81,14 +74,15 @@ public class MtaExecutor {
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
 
-        builder.command("tools\\mta-cli-5.2.1\\bin\\mta-cli.bat",
+        builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",
                 "--input", libraryLocation,
                 "--output", resultPath,
                 "--target", "reflection",
                 "--exportCSV",
                 "--batchMode",
                 "--skipReports",
-                "--userRulesDirectory", "tools\\custom-mta-rules");
+                "--overwrite",
+                "--userRulesDirectory", "tools" + File.separator + "custom-mta-rules");
 
         try {
             //Start script
@@ -96,8 +90,7 @@ public class MtaExecutor {
             Process process = builder.start();
 
             //Log script output
-            ScriptOutputStreamParser scriptOutputStreamParser =
-                    new ScriptOutputStreamParser(process.getInputStream(), LOG::debug);
+            ScriptOutputStreamParser scriptOutputStreamParser = new ScriptOutputStreamParser(process.getInputStream(), LOG::debug);
             Executors.newSingleThreadExecutor().submit(scriptOutputStreamParser);
 
             //Waiting for successful end of execution

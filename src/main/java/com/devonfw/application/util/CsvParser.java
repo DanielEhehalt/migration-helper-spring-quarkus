@@ -35,7 +35,7 @@ public class CsvParser {
      */
     public static List<List<String>> parseCSV(String resultPath) {
 
-        Path csvFile = new File(resultPath + "\\AllIssues.csv").toPath();
+        Path csvFile = Path.of(resultPath + File.separator + "AllIssues.csv");
         List<List<String>> records = new ArrayList<>();
 
         try {
@@ -65,7 +65,7 @@ public class CsvParser {
             FileUtils.cleanDirectory(new File(resultPath));
 
         } catch (IOException e) {
-            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry("",
+            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(resultPath,
                     "The directory could not be cleaned after parsing the CSV file. This could lead to the interference of further analysis."));
             LOG.debug("Could not clean directory after parsing", e);
         } catch (CsvValidationException e) {

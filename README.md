@@ -16,6 +16,7 @@ This migration helper analyzes Spring Boot projects in terms of migration capabi
 `./mvnw package appassembler:assemble`
 
 ## Run
+For a better result the project to be analyzed must be built (mvn package). Otherwise the dependencies are not available in the local Maven repository.
 
 **Windows:** \
 `target\appassembler\bin\mhsq.bat -p [projectLocation] -a [appEntryPoint] -m [mavenRepoLocation]`
