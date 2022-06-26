@@ -31,34 +31,45 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * Operator class for analyzing the dependency tree
  */
 public class DependencyTreeOperator {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DependencyTreeOperator.class);
+    List<DependencyNode> dependencyTreeRootNodes;
+    List<Artifact> allArtifactsOfProject;
+    List<ProjectDependency> projectDependencies;
 
+    public DependencyTreeOperator(File projectPomLocation, File mavenRepoLocation,
+                                  List<Artifact> applicationStartupLibrariesOfProject) {
+
+        generateDependencyTree(projectPomLocation, mavenRepoLocation, applicationStartupLibrariesOfProject);
+        generateArtifactsList(mavenRepoLocation);
+        createProjectDependencyObjectsFromArtifacts(allArtifactsOfProject);
+    }
+
+    private static final Logger LOG = LoggerFactory.getLogger(DependencyTreeOperator.class);
 
     /**
      * This method generates the dependency tree of a project
      *
-     * @param allArtifactsOfProject List with all artifacts of the project
-     * @param locationOfProjectPom  Location of project POM
-     * @param mavenRepoLocation     Location of the local maven repository
      * @return List with one DependencyNode per dependency in the project. Enriched with all children which have the scope compile
      */
-    public static List<DependencyNode> generateDependencyTree(List<Artifact> allArtifactsOfProject,
-                                                              File locationOfProjectPom, File mavenRepoLocation) {
+    private void generateDependencyTree(File projectPomLocation, File mavenRepoLocation, List<Artifact> applicationStartupLibrariesOfProject) {
 
-        List<DependencyNode> rootNodes = new ArrayList<>();
+        dependencyTreeRootNodes = new ArrayList<>();
 
         MavenBridgeImpl mavenBridge = new MavenBridgeImpl(mavenRepoLocation);
-        Model model = mavenBridge.readModel(locationOfProjectPom);
+        Model model = mavenBridge.readModel(projectPomLocation);
 
         for (org.apache.maven.model.Dependency dependency : model.getDependencies()) {
             if (dependency.getScope() != null && dependency.getScope().equals("test")) {
@@ -67,7 +78,7 @@ public class DependencyTreeOperator {
             String version = dependency.getVersion();
 
             if (version == null) {
-                Optional<Artifact> localArtifact = allArtifactsOfProject.stream().filter(artifact -> artifact.getGroupId()
+                Optional<Artifact> localArtifact = applicationStartupLibrariesOfProject.stream().filter(artifact -> artifact.getGroupId()
                         .equals(dependency.getGroupId()) && artifact.getArtifactId()
                         .equals(dependency.getArtifactId())).findFirst();
                 if (localArtifact.isPresent()) {
@@ -103,9 +114,8 @@ public class DependencyTreeOperator {
             if (rootNode == null) {
                 continue;
             }
-            rootNodes.add(rootNode);
+            dependencyTreeRootNodes.add(rootNode);
         }
-        return rootNodes;
     }
 
     /**
@@ -116,8 +126,7 @@ public class DependencyTreeOperator {
      * @return DependencyNode enriched with all children which have compile or runtime as scope
      * @throws DependencyCollectionException If maven dependency is not available
      */
-    private static DependencyNode buildBranchesOfRootNode(Artifact artifact, File mavenRepoLocation)
-            throws DependencyCollectionException, ArtifactResolutionException {
+    private DependencyNode buildBranchesOfRootNode(Artifact artifact, File mavenRepoLocation) throws DependencyCollectionException, ArtifactResolutionException {
 
         RepositorySystem system = newRepositorySystem();
         DefaultRepositorySystemSession session = newRepositorySystemSession(system, mavenRepoLocation);
@@ -143,7 +152,7 @@ public class DependencyTreeOperator {
      *
      * @return repository system
      */
-    public static RepositorySystem newRepositorySystem() {
+    private RepositorySystem newRepositorySystem() {
 
         DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
         locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
@@ -166,7 +175,7 @@ public class DependencyTreeOperator {
      *
      * @return repository system session
      */
-    public static DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system,
+    private DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system,
                                                                             File mavenRepoLocation) {
 
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
@@ -182,7 +191,7 @@ public class DependencyTreeOperator {
      *
      * @return List of remote repositories
      */
-    public static List<RemoteRepository> newRepositories() {
+    private List<RemoteRepository> newRepositories() {
 
         return new ArrayList<>(Collections.singletonList(
                 new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2/").build()));
@@ -191,18 +200,15 @@ public class DependencyTreeOperator {
     /**
      * This method generates a list of all artifacts of the given nodes
      *
-     * @param rootNodes         Nodes to analyze
-     * @param mavenRepoLocation Location of the local maven repository
      * @return List of all artifacts
      */
-    public static List<Artifact> generateArtifactsList(List<DependencyNode> rootNodes, File mavenRepoLocation) {
+    private void generateArtifactsList(File mavenRepoLocation) {
 
-        List<Artifact> allArtifactsOfProject = new ArrayList<>();
-        for (DependencyNode rootNode : rootNodes) {
+        allArtifactsOfProject = new ArrayList<>();
+        for (DependencyNode rootNode : dependencyTreeRootNodes) {
             allArtifactsOfProject.add(rootNode.getArtifact());
             findArtifactsOfNode(rootNode, mavenRepoLocation, allArtifactsOfProject);
         }
-        return allArtifactsOfProject;
     }
 
     /**
@@ -212,7 +218,7 @@ public class DependencyTreeOperator {
      * @param mavenRepoLocation     Location of the local maven repository
      * @param allArtifactsOfProject List of all artifacts
      */
-    private static List<Artifact> findArtifactsOfNode(DependencyNode node, File mavenRepoLocation,
+    private List<Artifact> findArtifactsOfNode(DependencyNode node, File mavenRepoLocation,
                                                       List<Artifact> allArtifactsOfProject) {
 
         List<DependencyNode> childrenFromNode = node.getChildren();
@@ -252,8 +258,7 @@ public class DependencyTreeOperator {
      * @return The searched jar file or null
      * @throws ArtifactResolutionException Throws Exception when artifact is not resolvable
      */
-    public static File tryFindJarInLocalMavenRepo(Artifact artifact, File mavenRepoLocation)
-            throws ArtifactResolutionException {
+    private File tryFindJarInLocalMavenRepo(Artifact artifact, File mavenRepoLocation) throws ArtifactResolutionException {
 
         File groupFolder = new File(mavenRepoLocation, artifact.getGroupId().replace('.', '/'));
         File artifactFolder = new File(groupFolder, artifact.getArtifactId());
@@ -286,8 +291,7 @@ public class DependencyTreeOperator {
      * @return The successfully resolved artifact
      * @throws ArtifactResolutionException If the artifact is not resolvable
      */
-    private static Artifact resolveArtifactFromMavenOnlineRepository(Artifact artifact, File mavenRepoLocation)
-            throws ArtifactResolutionException {
+    private Artifact resolveArtifactFromMavenOnlineRepository(Artifact artifact, File mavenRepoLocation) throws ArtifactResolutionException {
 
         RepositorySystem system = newRepositorySystem();
         DefaultRepositorySystemSession session = newRepositorySystemSession(system, mavenRepoLocation);
@@ -300,6 +304,29 @@ public class DependencyTreeOperator {
     }
 
     /**
+     * This method enhances the project dependencies with all packages and classes, including the packages and classes of their dependencies
+     *
+     * @param dependencyBlacklist     List of blacklisted dependencies
+     */
+    public void enhanceProjectDependencyWithPackagesAndClasses(List<ProjectDependency> dependencyBlacklist) {
+
+        for (ProjectDependency blacklistEntry : dependencyBlacklist) {
+
+            List<String> allPossiblePackagesOfBlacklistEntry = new ArrayList<>(blacklistEntry.getPackages());
+            List<String> allPossibleClassesOfBlacklistEntry = new ArrayList<>(blacklistEntry.getClasses());
+
+            DependencyNode dependencyNode = findDependencyInDependencyTree(dependencyTreeRootNodes, blacklistEntry);
+
+            if (dependencyNode != null) {
+                collectPackagesAndClassesFromChildren(dependencyNode, allPossiblePackagesOfBlacklistEntry,
+                        allPossibleClassesOfBlacklistEntry, projectDependencies, 1);
+            }
+            blacklistEntry.setAllPossiblePackagesIncludingDependencies(allPossiblePackagesOfBlacklistEntry);
+            blacklistEntry.setAllPossibleClassesIncludingDependencies(allPossibleClassesOfBlacklistEntry);
+        }
+    }
+
+    /**
      * This method collects all packages and classes from the dependencies of a node of the dependency tree
      *
      * @param node                                The given node
@@ -308,7 +335,7 @@ public class DependencyTreeOperator {
      * @param projectDependencies                 List with all project dependencies
      * @param searchDepth                         Search depth
      */
-    public static void collectPackagesAndClassesFromChildren(DependencyNode node, List<String> allPossiblePackagesOfBlacklistEntry,
+    private void collectPackagesAndClassesFromChildren(DependencyNode node, List<String> allPossiblePackagesOfBlacklistEntry,
                                                              List<String> allPossibleClassesOfBlacklistEntry,
                                                              List<ProjectDependency> projectDependencies,
                                                              Integer searchDepth) {
@@ -339,7 +366,7 @@ public class DependencyTreeOperator {
      * @param dependency              The searched dependency
      * @return Found node of the tree
      */
-    public static DependencyNode findDependencyInDependencyTree(List<DependencyNode> dependencyTreeRootNodes,
+    private DependencyNode findDependencyInDependencyTree(List<DependencyNode> dependencyTreeRootNodes,
                                                                 ProjectDependency dependency) {
 
         for (DependencyNode dependencyTreeRootNode : dependencyTreeRootNodes) {
@@ -357,7 +384,7 @@ public class DependencyTreeOperator {
         return null;
     }
 
-    private static DependencyNode checkBranches(DependencyNode node, ProjectDependency dependency) {
+    private DependencyNode checkBranches(DependencyNode node, ProjectDependency dependency) {
 
         List<DependencyNode> childrenFromNode = node.getChildren();
         for (DependencyNode child : childrenFromNode) {
@@ -369,5 +396,58 @@ public class DependencyTreeOperator {
             checkBranches(child, dependency);
         }
         return null;
+    }
+
+    /**
+     * This method creates a list of ProjectDependency objects based on the found artifacts. The ProjectDependency objects are enriched with the
+     * included packages and classes
+     */
+    private void createProjectDependencyObjectsFromArtifacts(List<Artifact> allArtifactsOfProject) {
+
+        projectDependencies = new ArrayList<>();
+
+        for (Artifact artifact : allArtifactsOfProject) {
+            File dependencyLocation = artifact.getFile();
+            ProjectDependency projectDependency = new ProjectDependency(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(),
+                    new ArrayList<>(), new ArrayList<>());
+            if (dependencyLocation.exists()) {
+                try {
+                    ZipInputStream zip = new ZipInputStream(new FileInputStream(dependencyLocation));
+                    for (ZipEntry entry = zip.getNextEntry(); entry != null; entry = zip.getNextEntry()) {
+                        String filepath = entry.getName();
+                        String fqnOfClassWithFileExtension = filepath.replace('/', '.');
+                        if (!entry.isDirectory() && filepath.endsWith(".class") && !filepath.contains("$")
+                                && fqnOfClassWithFileExtension.contains(artifact.getGroupId())) {
+                            String fqnOfClass = fqnOfClassWithFileExtension.substring(0, fqnOfClassWithFileExtension.length() - ".class".length());
+                            projectDependency.getClasses().add(fqnOfClass);
+                            String packageOfClass = fqnOfClass.substring(0, fqnOfClass.lastIndexOf("."));
+                            if (!projectDependency.getPackages().contains(packageOfClass)) {
+                                projectDependency.getPackages().add(packageOfClass);
+                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(
+                            artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion(),
+                            "Could not find jar file in local maven repository. Collecting classes and packages of this artifact is not possible."));
+                    LOG.debug("Could not find jar file in local maven repository for artifact: " +
+                            artifact.getGroupId() + ":" + artifact.getArtifactId() + ":" + artifact.getVersion() +
+                            ". Collecting classes and packages of this artifact is not possible.");
+                }
+            }
+            projectDependencies.add(projectDependency);
+        }
+    }
+
+    public List<DependencyNode> getDependencyTreeRootNodes() {
+        return dependencyTreeRootNodes;
+    }
+
+    public List<ProjectDependency> getProjectDependencies() {
+        return projectDependencies;
+    }
+
+    public List<Artifact> getAllArtifactsOfProject() {
+        return allArtifactsOfProject;
     }
 }

@@ -9,6 +9,7 @@ import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,47 +21,13 @@ public class ReflectionUsageCollector {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReflectionUsageCollector.class);
 
-    /**
-     * This method converts the output from the CSV parser to a list of ReflectionUsageInProject objects
-     *
-     * @param csvOutput    Output from CSV parser
-     * @param inputProject Location of the project
-     * @return reflection usage list
-     */
-    public static List<ReflectionUsageInProject> generateReflectionUsageInProjectList(List<List<String>> csvOutput,
-                                                                                      String inputProject) {
+    List<ReflectionUsageInProject> reflectionUsageInProject;
+    List<ReflectionUsageInDependencies> reflectionUsageInDependencies;
 
-        List<ReflectionUsageInProject> reflectionUsage = new ArrayList<>();
+    public ReflectionUsageCollector(File inputProjectLocation, File resultFolderLocation) {
 
-        for (List<String> csvEntry : csvOutput) {
-            if (csvEntry.get(1).equals("reflection")) {
-                String className = csvEntry.get(6);
-                String path = csvEntry.get(7).substring(inputProject.length() + 1);
-                reflectionUsage.add(new ReflectionUsageInProject(className, path));
-            }
-        }
-        return reflectionUsage;
-    }
-
-    /**
-     * This method runs the MTA for all specified libraries and collects the reflection usage of these libraries
-     *
-     * @param libraries  Libraries to analyze
-     * @param resultPath Path for analysis results
-     * @return Reflection usage of the specified libraries
-     */
-    public static List<ReflectionUsageInDependencies> collectReflectionUsageInLibraries(List<Artifact> libraries,
-                                                                                        String resultPath) {
-
-        List<ReflectionUsageInDependencies> reflectionUsage = new ArrayList<>();
-        libraries.forEach(library -> {
-            boolean execution = MtaExecutor.executeMtaToFindReflectionInLibrary(library.getFile().toString(), resultPath);
-            List<List<String>> csvOutput = CsvParser.parseCSV(resultPath);
-            List<ReflectionUsageInDependencies> reflectionUsageInDependencies =
-                    generateReflectionUsageInDependenciesList(csvOutput);
-            reflectionUsage.addAll(reflectionUsageInDependencies);
-        });
-        return DependencyUtilities.mapJarFilesToFullArtifactNames(reflectionUsage, libraries);
+        reflectionUsageInDependencies = new ArrayList<>();
+        generateReflectionUsageInProjectList(CsvParser.parseCSV(resultFolderLocation), inputProjectLocation);
     }
 
     /**
@@ -69,8 +36,44 @@ public class ReflectionUsageCollector {
      * @param csvOutput Output from CSV parser
      * @return reflection usage list
      */
-    public static List<ReflectionUsageInDependencies> generateReflectionUsageInDependenciesList(
-            List<List<String>> csvOutput) {
+    private void generateReflectionUsageInProjectList(List<List<String>> csvOutput, File inputProjectLocation) {
+
+        reflectionUsageInProject = new ArrayList<>();
+
+        for (List<String> csvEntry : csvOutput) {
+            if (csvEntry.get(1).equals("reflection")) {
+                String className = csvEntry.get(6);
+                String path = csvEntry.get(7).substring(inputProjectLocation.toString().length() + 1);
+                reflectionUsageInProject.add(new ReflectionUsageInProject(className, path));
+            }
+        }
+    }
+
+    /**
+     * This method runs the MTA for all specified dependencies and collects the reflection usage of these dependencies
+     *
+     * @param dependencies         Libraries to analyze
+     * @param resultFolderLocation Path for analysis results
+     */
+    public void collectReflectionUsageInDependencies(List<Artifact> dependencies, File resultFolderLocation) {
+
+        reflectionUsageInDependencies = new ArrayList<>();
+        dependencies.forEach(library -> {
+            boolean execution = MtaExecutor.executeMtaToFindReflectionInLibrary(library.getFile(), resultFolderLocation);
+            List<List<String>> csvOutput = CsvParser.parseCSV(resultFolderLocation);
+            List<ReflectionUsageInDependencies> reflectionUsageInDependencies = generateReflectionUsageInDependenciesList(csvOutput);
+            reflectionUsageInDependencies.addAll(reflectionUsageInDependencies);
+        });
+        DependencyUtilities.mapJarFilesToFullArtifactNames(reflectionUsageInDependencies, dependencies);
+    }
+
+    /**
+     * This method converts the output from the CSV parser to a list of ReflectionUsageInProject objects
+     *
+     * @param csvOutput Output from CSV parser
+     * @return reflection usage list
+     */
+    private List<ReflectionUsageInDependencies> generateReflectionUsageInDependenciesList(List<List<String>> csvOutput) {
 
         List<ReflectionUsageInDependencies> reflectionUsage = new ArrayList<>();
 
@@ -93,5 +96,13 @@ public class ReflectionUsageCollector {
             }
         }
         return reflectionUsage;
+    }
+
+    public List<ReflectionUsageInProject> getReflectionUsageInProject() {
+        return reflectionUsageInProject;
+    }
+
+    public List<ReflectionUsageInDependencies> getReflectionUsageInDependencies() {
+        return reflectionUsageInDependencies;
     }
 }

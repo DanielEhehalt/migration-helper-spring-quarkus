@@ -3,7 +3,6 @@ package com.devonfw.application.operator;
 import com.devonfw.application.collector.AnalysisFailureCollector;
 import com.devonfw.application.model.AnalysisFailureEntry;
 import com.devonfw.application.model.ProjectDependency;
-import com.devonfw.application.util.DependencyUtilities;
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaSource;
 import net.sf.mmm.code.impl.java.JavaContext;
@@ -13,7 +12,6 @@ import net.sf.mmm.code.java.maven.impl.MavenBridgeImpl;
 import org.apache.maven.model.Model;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
-import org.eclipse.aether.graph.DependencyNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,22 +31,24 @@ public class ProjectOperator {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProjectOperator.class);
 
+    List<Artifact> applicationStartupLibrariesOfProject;
+    Integer totalJavaClassesScanned;
+
+    public ProjectOperator(File inputProjectLocation, File mavenRepoLocation, File applicationEntryPointLocation) {
+
+        collectAllApplicationStartupLibrariesOfProject(inputProjectLocation, mavenRepoLocation, applicationEntryPointLocation);
+    }
+
     /**
      * This method creates a java context based on the @SpringBootApplication class and returns the loaded dependencies
      *
-     * @param springBootApp Path of the @SpringBootApplication class
-     * @param inputProject  Location of the project
-     * @param mavenRepo     Location of the local maven repository
-     * @return List with dependencies
      */
-    public static List<Artifact> collectAllApplicationStartupLibrariesOfProject(Path springBootApp, File inputProject, File mavenRepo) {
-
-        List<Artifact> applicationStartupLibrariesOfProject = new ArrayList<>();
+    private void collectAllApplicationStartupLibrariesOfProject(File inputProjectLocation, File mavenRepoLocation, File applicationEntryPointLocation) {
 
         MavenDependencyCollector dependencyCollector =
-                new MavenDependencyCollector(new MavenBridgeImpl(mavenRepo), false, true, null);
-        JavaContext context = JavaSourceProviderUsingMaven.createFromLocalMavenProject(inputProject, dependencyCollector);
-        String fqnOfClass = getFQN(springBootApp);
+                new MavenDependencyCollector(new MavenBridgeImpl(mavenRepoLocation), false, true, null);
+        JavaContext context = JavaSourceProviderUsingMaven.createFromLocalMavenProject(inputProjectLocation, dependencyCollector);
+        String fqnOfClass = getFQN(applicationEntryPointLocation.toPath());
         try {
             context.getClassLoader().loadClass(fqnOfClass);
         } catch (ClassNotFoundException e) {
@@ -57,6 +57,7 @@ public class ProjectOperator {
             LOG.debug("Could not find class", e);
         }
 
+        applicationStartupLibrariesOfProject = new ArrayList<>();
         URL[] urls = dependencyCollector.asUrls();
         for (URL url : urls) {
             String urlWithoutType = url.toString().substring(6);
@@ -72,7 +73,6 @@ public class ProjectOperator {
                 }
             }
         }
-        return applicationStartupLibrariesOfProject;
     }
 
     /**
@@ -81,7 +81,7 @@ public class ProjectOperator {
      * @param inputFile Java input file to retrieve FQN (Full Qualified Name)
      * @return qualified name with full package
      */
-    public static String getFQN(Path inputFile) {
+    private String getFQN(Path inputFile) {
 
         String simpleName = inputFile.getFileName().toString().replaceAll("\\.(?i)java", "");
         String packageName = getPackageName(inputFile.getParent(), "");
@@ -96,7 +96,7 @@ public class ProjectOperator {
      * @param packageName the package name
      * @return package name
      */
-    private static String getPackageName(Path folder, String packageName) {
+    private String getPackageName(Path folder, String packageName) {
 
         if (folder == null) {
             return null;
@@ -119,31 +119,27 @@ public class ProjectOperator {
      * This method collects all import statements recursively across all java files from an entrypoint and tries to assign them to the project
      * dependencies
      *
-     * @param entryPoint              Directory as entrypoint
+     * @param entry                   Folder to scan java classes
      * @param dependencyBlacklist     List with the blacklisted dependencies
-     * @param projectDependencies     List of the project dependencies
-     * @param dependencyTreeRootNodes Dependency tree
-     * @return Total files scanned
+     * @param dependencyTreeOperator  DependencyTreeOperator to get all project dependencies
      */
-    public static Integer occurrenceMeasurement(File entryPoint, List<ProjectDependency> dependencyBlacklist,
-                                                List<ProjectDependency> projectDependencies, List<DependencyNode> dependencyTreeRootNodes) {
+    public void occurrenceMeasurement(File entry, List<ProjectDependency> dependencyBlacklist,
+                                      DependencyTreeOperator dependencyTreeOperator) {
 
-        Integer totalFilesScanned = 0;
-        DependencyUtilities.enhanceProjectDependencyWithPackagesAndClasses(dependencyBlacklist, projectDependencies, dependencyTreeRootNodes);
-        File[] files = entryPoint.listFiles();
+        dependencyTreeOperator.enhanceProjectDependencyWithPackagesAndClasses(dependencyBlacklist);
+        File[] files = entry.listFiles();
         if (files == null) {
-            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(entryPoint.toString(),
+            AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(entry.getParent(),
                     "Can not collect import statements from this entrypoint recursively. No files found"));
-            LOG.error("Can not collect import statements from this entrypoint recursively. No files found in: " + entryPoint);
+            LOG.error("Can not collect import statements from this entrypoint recursively. No files found in: " + entry.getParent());
         }
         for (File file : files) {
             if (file.isFile() && file.getName().endsWith(".java")) {
-                totalFilesScanned += count(file, dependencyBlacklist);
+                count(file, dependencyBlacklist);
             } else if (file.isDirectory()) {
-                totalFilesScanned += occurrenceMeasurement(file, dependencyBlacklist, projectDependencies, dependencyTreeRootNodes);
+                occurrenceMeasurement(file, dependencyBlacklist, dependencyTreeOperator);
             }
         }
-        return totalFilesScanned;
     }
 
     /**
@@ -152,11 +148,10 @@ public class ProjectOperator {
      *
      * @param file                Java source code file
      * @param dependencyBlacklist List of the project dependencies
-     * @return Total files scanned
      */
-    public static Integer count(File file, List<ProjectDependency> dependencyBlacklist) {
+    private void count(File file, List<ProjectDependency> dependencyBlacklist) {
 
-        Integer totalFilesScanned = 0;
+        totalJavaClassesScanned = 0;
         JavaProjectBuilder builder = new JavaProjectBuilder();
         try {
             builder.addSource(new FileReader(file));
@@ -169,15 +164,14 @@ public class ProjectOperator {
         for (JavaSource source : sources) {
             List<ProjectDependency> alreadyCountedForThisSource = new ArrayList<>();
             List<String> importStatements = source.getImports();
-            totalFilesScanned++;
+            totalJavaClassesScanned++;
             for (String importStatement : importStatements) {
                 mapAndCount(dependencyBlacklist, alreadyCountedForThisSource, importStatement);
             }
         }
-        return totalFilesScanned;
     }
 
-    private static void mapAndCount(List<ProjectDependency> dependencyBlacklist, List<ProjectDependency> alreadyCountedForThisSource,
+    private void mapAndCount(List<ProjectDependency> dependencyBlacklist, List<ProjectDependency> alreadyCountedForThisSource,
                                     String importStatement) {
 
         if (importStatement.endsWith("*")) {
@@ -201,5 +195,13 @@ public class ProjectOperator {
                 }
             }
         }
+    }
+
+    public Integer getTotalJavaClassesScanned() {
+        return totalJavaClassesScanned;
+    }
+
+    public List<Artifact> getApplicationStartupLibrariesOfProject() {
+        return applicationStartupLibrariesOfProject;
     }
 }

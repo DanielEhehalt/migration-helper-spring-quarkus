@@ -16,18 +16,20 @@ public class PomOperator {
 
     private static final Logger LOG = LoggerFactory.getLogger(PomOperator.class);
 
+    public PomOperator() {}
+
     /**
      * This method collects the java version from a Maven POM
      *
-     * @param locationOfProjectPom Location of project POM
+     * @param projectPomLocation Location of project POM
      * @return Java version
      */
-    public static String getJavaVersionFromPomFile(String locationOfProjectPom) {
+    public String getJavaVersionFromPomFile(File projectPomLocation) {
 
         String javaVersion = "undefined";
         MavenXpp3Reader reader = new MavenXpp3Reader();
         try {
-            Model model = reader.read(new FileReader(locationOfProjectPom));
+            Model model = reader.read(new FileReader(projectPomLocation));
             String javaVersionProperty = model.getProperties().getProperty("java.version");
             if (javaVersionProperty != null) {
                 javaVersion = javaVersionProperty;
@@ -41,14 +43,14 @@ public class PomOperator {
     /**
      * This method collects the artifact identifier and the version from a Maven POM
      *
-     * @param locationOfProjectPom Location of project POM
+     * @param projectPomLocation Location of project POM
      * @return Name and version as String
      */
-    public static String getProjectIdentifierFromPomFile(String locationOfProjectPom) {
+    public String getProjectIdentifierFromPomFile(File projectPomLocation) {
 
         MavenXpp3Reader reader = new MavenXpp3Reader();
         try {
-            Model model = reader.read(new FileReader(locationOfProjectPom));
+            Model model = reader.read(new FileReader(projectPomLocation));
             String groupId = model.getGroupId();
             if (groupId == null) {
                 groupId = model.getParent().getGroupId();

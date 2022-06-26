@@ -1,6 +1,8 @@
 package com.devonfw.application.collector;
 
 import com.devonfw.application.model.MtaIssue;
+import com.devonfw.application.util.CsvParser;
+import com.devonfw.application.util.MtaExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
@@ -25,15 +27,23 @@ public class MtaIssuesCollector {
 
     private static final Logger LOG = LoggerFactory.getLogger(MtaIssuesCollector.class);
 
+    List<MtaIssue> mtaIssuesList;
+
+    public MtaIssuesCollector(File inputProjectLocation, File resultFolderLocation) {
+
+        MtaExecutor.executeMtaForProject(inputProjectLocation, resultFolderLocation);
+        generateMtaIssuesList(CsvParser.parseCSV(resultFolderLocation));
+    }
+
     /**
      * This method converts the output from the CSV parser to a list with MTA issues
      *
      * @param csvOutput Output from CSV parser
      * @return List with MTA issues
      */
-    public static List<MtaIssue> generateMtaIssuesList(List<List<String>> csvOutput) {
+    private void generateMtaIssuesList(List<List<String>> csvOutput) {
 
-        List<MtaIssue> mtaIssuesList = new ArrayList<>();
+        mtaIssuesList = new ArrayList<>();
 
         for (List<String> entry : csvOutput) {
             if (entry.get(1).equals("mandatory")) {
@@ -53,8 +63,6 @@ public class MtaIssuesCollector {
 
         File locationOfCustomMtaRules = new File(System.getProperty("user.dir") + File.separator + "tools" + File.separator + "custom-mta-rules");
         mtaIssuesList = resolveGroupIdAndArtifactIdFromMtaRules(mtaIssuesList, locationOfCustomMtaRules);
-
-        return mtaIssuesList;
     }
 
     /**
@@ -64,7 +72,7 @@ public class MtaIssuesCollector {
      * @param locationMTARules Location of the MTA rules
      * @return Map with the rule ids and the corresponding groupId and artifactId
      */
-    public static List<MtaIssue> resolveGroupIdAndArtifactIdFromMtaRules(List<MtaIssue> mtaIssuesList, File locationMTARules) {
+    private List<MtaIssue> resolveGroupIdAndArtifactIdFromMtaRules(List<MtaIssue> mtaIssuesList, File locationMTARules) {
 
         File[] directories = locationMTARules.listFiles(File::isDirectory);
 
@@ -92,7 +100,7 @@ public class MtaIssuesCollector {
     /**
      * Handler class to parse the MTA rules
      */
-    public static class RuleXmlHandler extends DefaultHandler {
+    public class RuleXmlHandler extends DefaultHandler {
 
         private List<MtaIssue> mtaIssuesList;
         private int indexOfMtaIssuesListEntry = -1;
@@ -153,5 +161,10 @@ public class MtaIssuesCollector {
 
             return mtaIssuesList;
         }
+    }
+
+    public List<MtaIssue> getMtaIssuesList() {
+
+        return mtaIssuesList;
     }
 }

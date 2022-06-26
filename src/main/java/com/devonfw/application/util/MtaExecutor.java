@@ -20,19 +20,19 @@ public class MtaExecutor {
      * This method runs the Red Hat Migration Toolkit for Applications (MTA) to find incompatible dependencies. The result of the analysis is
      * temporarily saved in the results folder
      *
-     * @param projectLocation Path to the project which should be analyzed
-     * @param resultPath      Path to the directory where the results will be saved
+     * @param inputProjectLocation  Path to the project which should be analyzed
+     * @param resultFolderLocation  Path to the directory where the results will be saved
      * @return If execution was successful
      */
-    public static boolean executeMtaForProject(String projectLocation, String resultPath) {
+    public static boolean executeMtaForProject(File inputProjectLocation, File resultFolderLocation) {
 
         ProcessBuilder builder = new ProcessBuilder();
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
 
         builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",
-                "--input", projectLocation,
-                "--output", resultPath,
+                "--input", inputProjectLocation.toString(),
+                "--output", resultFolderLocation.toString(),
                 "--target", "quarkus",
                 "--target", "reflection",
                 "--exportCSV",
@@ -65,18 +65,18 @@ public class MtaExecutor {
      * This method runs the Red Hat Migration Toolkit for Applications (MTA) to find reflection calls in a library
      *
      * @param libraryLocation Path to the jar file which should be analyzed
-     * @param resultPath      Path to the directory where the results will be saved
+     * @param resultFolderLocation      Path to the directory where the results will be saved
      * @return If execution was successful
      */
-    public static boolean executeMtaToFindReflectionInLibrary(String libraryLocation, String resultPath) {
+    public static boolean executeMtaToFindReflectionInLibrary(File libraryLocation, File resultFolderLocation) {
 
         ProcessBuilder builder = new ProcessBuilder();
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
 
         builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",
-                "--input", libraryLocation,
-                "--output", resultPath,
+                "--input", libraryLocation.toString(),
+                "--output", resultFolderLocation.toString(),
                 "--target", "reflection",
                 "--exportCSV",
                 "--batchMode",
@@ -99,7 +99,7 @@ public class MtaExecutor {
             return true;
         } catch (IOException | InterruptedException e) {
             AnalysisFailureCollector.addAnalysisFailure(
-                    new AnalysisFailureEntry(libraryLocation, "MTA reflection analysis failed."));
+                    new AnalysisFailureEntry(libraryLocation.toString(), "MTA reflection analysis failed."));
             LOG.debug("MTA reflection analysis failed.", e);
             return false;
         }

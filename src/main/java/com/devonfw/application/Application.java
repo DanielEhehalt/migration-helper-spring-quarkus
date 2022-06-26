@@ -3,25 +3,18 @@ package com.devonfw.application;
 import com.devonfw.application.collector.DependencyBlacklistCollector;
 import com.devonfw.application.collector.MtaIssuesCollector;
 import com.devonfw.application.collector.ReflectionUsageCollector;
-import com.devonfw.application.model.*;
 import com.devonfw.application.operator.DependencyTreeOperator;
 import com.devonfw.application.operator.ProjectOperator;
-import com.devonfw.application.util.CsvParser;
-import com.devonfw.application.util.DependencyUtilities;
-import com.devonfw.application.util.MtaExecutor;
 import com.devonfw.application.util.ReportGenerator;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.graph.DependencyNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import java.io.File;
 import java.time.Instant;
-import java.util.*;
 
 /**
  * Manages CLI and initiates the analysis steps
@@ -53,22 +46,6 @@ public class Application implements Runnable {
     @CommandLine.Option(names = {"-v", "--verbose"}, defaultValue = "false", description = "Enable debug logging")
     private Boolean debugLoggingEnabled;
 
-    File inputProjectLocation;
-    File mavenRepoLocation;
-    File applicationEntryPointLocation;
-    File projectPomLocation;
-    File resultFolderLocation;
-
-    List<Artifact> applicationStartupLibrariesOfProject;
-    List<Artifact> allArtifactsOfProject;
-    List<DependencyNode> dependencyTreeRootNodes;
-    List<ProjectDependency> projectDependencies;
-
-    List<MtaIssue> mtaIssuesList;
-    List<ProjectDependency> dependencyBlacklist;
-    List<ReflectionUsageInProject> reflectionUsageInProject;
-    List<ReflectionUsageInDependencies> reflectionUsageInDependencies;
-
     /**
      * Main method. Initiates CLI
      */
@@ -99,29 +76,20 @@ public class Application implements Runnable {
 
         //Execute analysis
         if (!inputProject.equals("") || !mavenRepo.equals("") || !app.equals("")) {
-            this.inputProjectLocation = new File(this.inputProject);
-            this.mavenRepoLocation = new File(this.mavenRepo);
-            this.applicationEntryPointLocation = new File(this.app);
-            this.projectPomLocation = new File(this.inputProject + File.separator + "pom.xml");
+            File inputProjectLocation = new File(this.inputProject);
+            File mavenRepoLocation = new File(this.mavenRepo);
+            File applicationEntryPointLocation = new File(this.app);
+            File projectPomLocation = new File(this.inputProject + File.separator + "pom.xml");
 
             checkIfFilesExist(inputProjectLocation, mavenRepoLocation, applicationEntryPointLocation, projectPomLocation);
 
-            this.resultFolderLocation = new File(createDirectoryForResults());
+            File resultFolderLocation = new File(createDirectoryForResults());
 
             LOG.info("Start the analysis");
             LOG.info("Project location: " + inputProjectLocation);
             LOG.info("Result folder: " + resultFolderLocation);
 
-            //Execute steps
-            collectProjectData();
-            executeMtaForProject();
-            int totalJavaClassesScanned = occurrenceMeasurementOfBlacklistedDependencies();
-            scanForReflectionUsageInDependencies();
-
-            //Generate report
-            ReportGenerator.generateReport(dependencyBlacklist, totalJavaClassesScanned, mtaIssuesList, reflectionUsageInProject,
-                    reflectionUsageInDependencies, dependencyTreeRootNodes, projectPomLocation.toString(),
-                    resultFolderLocation.toString(), withoutReflectionUsageOfDependencies);
+            executeAnalysis(inputProjectLocation, mavenRepoLocation, applicationEntryPointLocation, projectPomLocation, resultFolderLocation);
 
             System.exit(0);
         } else {
@@ -130,35 +98,29 @@ public class Application implements Runnable {
         }
     }
 
-    private void collectProjectData() {
+    private void executeAnalysis(File inputProjectLocation, File mavenRepoLocation, File applicationEntryPointLocation, File projectPomLocation,
+                                 File resultFolderLocation) {
 
-        applicationStartupLibrariesOfProject = ProjectOperator.collectAllApplicationStartupLibrariesOfProject(applicationEntryPointLocation.toPath(), inputProjectLocation, mavenRepoLocation);
-        dependencyTreeRootNodes = DependencyTreeOperator.generateDependencyTree(applicationStartupLibrariesOfProject, projectPomLocation, mavenRepoLocation);
-        allArtifactsOfProject = DependencyTreeOperator.generateArtifactsList(dependencyTreeRootNodes, mavenRepoLocation);
-        projectDependencies = DependencyUtilities.createProjectDependencyObjectsFromArtifacts(allArtifactsOfProject);
-    }
+        ProjectOperator projectOperator = new ProjectOperator(inputProjectLocation, mavenRepoLocation, applicationEntryPointLocation);
+        DependencyTreeOperator dependencyTreeOperator = new DependencyTreeOperator(projectPomLocation, mavenRepoLocation,
+                projectOperator.getApplicationStartupLibrariesOfProject());
+        MtaIssuesCollector mtaIssuesCollector = new MtaIssuesCollector(inputProjectLocation, resultFolderLocation);
+        ReflectionUsageCollector reflectionUsageCollector = new ReflectionUsageCollector(inputProjectLocation, resultFolderLocation);
+        DependencyBlacklistCollector dependencyBlacklistCollector = new DependencyBlacklistCollector(mtaIssuesCollector.getMtaIssuesList(),
+                dependencyTreeOperator.getProjectDependencies(), dependencyTreeOperator.getDependencyTreeRootNodes());
 
-    private void executeMtaForProject() {
-
-        boolean execution = MtaExecutor.executeMtaForProject(inputProjectLocation.toString(), resultFolderLocation.toString());
-        List<List<String>> csvOutput = CsvParser.parseCSV(resultFolderLocation.toString());
-        mtaIssuesList = MtaIssuesCollector.generateMtaIssuesList(csvOutput);
-        reflectionUsageInProject = ReflectionUsageCollector.generateReflectionUsageInProjectList(csvOutput, inputProjectLocation.toString());
-    }
-
-    private Integer occurrenceMeasurementOfBlacklistedDependencies() {
-
-        File entryPoint = new File(applicationEntryPointLocation.getParent());
-        dependencyBlacklist = DependencyBlacklistCollector.generateDependencyBlacklistFromMtaIssuesList(mtaIssuesList, projectDependencies, dependencyTreeRootNodes);
-        return ProjectOperator.occurrenceMeasurement(entryPoint, dependencyBlacklist, projectDependencies, dependencyTreeRootNodes);
-    }
-
-    private void scanForReflectionUsageInDependencies() {
-
-        reflectionUsageInDependencies = new ArrayList<>();
+        projectOperator.occurrenceMeasurement(new File(applicationEntryPointLocation.getParent()),
+                dependencyBlacklistCollector.getDependencyBlacklist(), dependencyTreeOperator);
         if (!withoutReflectionUsageOfDependencies) {
-            reflectionUsageInDependencies = ReflectionUsageCollector.collectReflectionUsageInLibraries(allArtifactsOfProject, resultFolderLocation.toString());
+            reflectionUsageCollector.collectReflectionUsageInDependencies(dependencyTreeOperator.getAllArtifactsOfProject(),
+                    resultFolderLocation);
         }
+
+        ReportGenerator reportGenerator = new ReportGenerator(dependencyBlacklistCollector.getDependencyBlacklist(),
+                projectOperator.getTotalJavaClassesScanned(), mtaIssuesCollector.getMtaIssuesList(),
+                reflectionUsageCollector.getReflectionUsageInProject(),
+                reflectionUsageCollector.getReflectionUsageInDependencies(), dependencyTreeOperator.getDependencyTreeRootNodes(),
+                projectPomLocation, resultFolderLocation, withoutReflectionUsageOfDependencies);
     }
 
     /**

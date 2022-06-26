@@ -17,28 +17,34 @@ public class DependencyBlacklistCollector {
 
     private static final Logger LOG = LoggerFactory.getLogger(DependencyBlacklistCollector.class);
 
+    List<ProjectDependency> dependencyBlacklist;
+
+    public DependencyBlacklistCollector(List<MtaIssue> mtaIssuesList, List<ProjectDependency> projectDependencies,
+                                        List<DependencyNode> dependencyTreeRootNodes) {
+
+        generateDependencyBlacklistFromMtaIssuesList(mtaIssuesList, projectDependencies, dependencyTreeRootNodes);
+    }
+
     /**
      * This method generates the dependency blacklist from the found MTA issues
      *
      * @param mtaIssuesList           Found issues of MTA
-     * @param allProjectDependencies  List with all project dependencies
+     * @param projectDependencies  List with all project dependencies
      * @param dependencyTreeRootNodes Dependency tree
-     * @return List with blacklisted dependencies
      */
-    public static List<ProjectDependency> generateDependencyBlacklistFromMtaIssuesList(List<MtaIssue> mtaIssuesList,
-                                                                                       List<ProjectDependency> allProjectDependencies,
+    private void generateDependencyBlacklistFromMtaIssuesList(List<MtaIssue> mtaIssuesList, List<ProjectDependency> projectDependencies,
                                                                                        List<DependencyNode> dependencyTreeRootNodes) {
 
         List<ProjectDependency> rootDependencies = new ArrayList<>();
         dependencyTreeRootNodes.forEach(node -> {
-            Optional<ProjectDependency> optionalProjectDependency = allProjectDependencies.stream()
+            Optional<ProjectDependency> optionalProjectDependency = projectDependencies.stream()
                     .filter(dependency -> node.getArtifact().getGroupId().equals(dependency.getGroupId()) &&
                             node.getArtifact().getArtifactId().equals(dependency.getArtifactId()) &&
                             node.getArtifact().getVersion().equals(dependency.getVersion())).findAny();
             optionalProjectDependency.ifPresent(rootDependencies::add);
         });
 
-        List<ProjectDependency> dependencyBlacklist = new ArrayList<>();
+        dependencyBlacklist = new ArrayList<>();
 
         for (MtaIssue mtaIssue : mtaIssuesList) {
             boolean mtaIssueIsGeneralIssue = true;
@@ -50,7 +56,7 @@ public class DependencyBlacklistCollector {
                 mtaIssueIsGeneralIssue = enhanceBlacklistIfPossible(dependencyBlacklist, mtaIssue, mtaIssueIsGeneralIssue, optionalProjectDependency);
             }
             for (String javaPackage : mtaIssue.getPackages()) {
-                Optional<ProjectDependency> optionalProjectDependency = allProjectDependencies.stream()
+                Optional<ProjectDependency> optionalProjectDependency = projectDependencies.stream()
                         .filter(projectDependency -> projectDependency.getClasses().contains(javaPackage) ||
                                 projectDependency.getPackages().contains(javaPackage)).findFirst();
                 mtaIssueIsGeneralIssue = enhanceBlacklistIfPossible(dependencyBlacklist, mtaIssue, mtaIssueIsGeneralIssue, optionalProjectDependency);
@@ -59,10 +65,9 @@ public class DependencyBlacklistCollector {
                 mtaIssue.setGeneralIssue(true);
             }
         }
-        return dependencyBlacklist;
     }
 
-    private static boolean enhanceBlacklistIfPossible(List<ProjectDependency> dependencyBlacklist, MtaIssue mtaIssue, boolean mtaIssueIsGeneralIssue,
+    private boolean enhanceBlacklistIfPossible(List<ProjectDependency> dependencyBlacklist, MtaIssue mtaIssue, boolean mtaIssueIsGeneralIssue,
                                                       Optional<ProjectDependency> optionalProjectDependency) {
 
 
@@ -76,5 +81,9 @@ public class DependencyBlacklistCollector {
             mtaIssueIsGeneralIssue = false;
         }
         return mtaIssueIsGeneralIssue;
+    }
+
+    public List<ProjectDependency> getDependencyBlacklist() {
+        return dependencyBlacklist;
     }
 }

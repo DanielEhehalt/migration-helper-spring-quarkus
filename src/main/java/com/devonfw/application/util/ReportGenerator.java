@@ -28,6 +28,15 @@ public class ReportGenerator {
 
     private static final Logger LOG = LoggerFactory.getLogger(ReportGenerator.class);
 
+    public ReportGenerator(List<ProjectDependency> dependencyBlacklist, Integer totalJavaClassesScanned, List<MtaIssue> mtaIssuesList,
+                           List<ReflectionUsageInProject> reflectionUsageInProject, List<ReflectionUsageInDependencies> reflectionUsageInDependencies,
+                           List<DependencyNode> dependencyTreeRootNodes, File projectPomLocation, File resultFolderLocation,
+                           Boolean withoutReflectionUsageOfDependencies) {
+
+        generateReport(dependencyBlacklist, totalJavaClassesScanned, mtaIssuesList, reflectionUsageInProject, reflectionUsageInDependencies,
+                dependencyTreeRootNodes, projectPomLocation, resultFolderLocation, withoutReflectionUsageOfDependencies);
+    }
+
     /**
      * This method generates the HTML report
      *
@@ -36,19 +45,19 @@ public class ReportGenerator {
      * @param reflectionUsageInProject             List of reflection usage in the project
      * @param mtaIssuesList                        Found issues of the MTA analysis
      * @param reflectionUsageInDependencies        List of reflection usage in the project dependencies
-     * @param dependencyNodes                      List with the root nodes of the dependency tree
+     * @param dependencyTreeRootNodes              List with the root nodes of the dependency tree
      * @param projectPomLocation                   Location of project POM
      * @param resultFolderLocation                 Path to the directory where the report will be saved
      * @param withoutReflectionUsageOfDependencies CLI option
      */
-    public static void generateReport(List<ProjectDependency> dependencyBlacklist,
+    private void generateReport(List<ProjectDependency> dependencyBlacklist,
                                       Integer totalJavaClassesScanned,
                                       List<MtaIssue> mtaIssuesList,
                                       List<ReflectionUsageInProject> reflectionUsageInProject,
                                       List<ReflectionUsageInDependencies> reflectionUsageInDependencies,
-                                      List<DependencyNode> dependencyNodes,
-                                      String projectPomLocation,
-                                      String resultFolderLocation,
+                                      List<DependencyNode> dependencyTreeRootNodes,
+                                      File projectPomLocation,
+                                      File resultFolderLocation,
                                       Boolean withoutReflectionUsageOfDependencies) {
 
         LOG.info("Generate report.html");
@@ -63,10 +72,11 @@ public class ReportGenerator {
         Velocity.init(properties);
         VelocityContext context = new VelocityContext();
         Template template = Velocity.getTemplate("report-template.vm");
+        PomOperator pomOperator = new PomOperator();
 
         //Insert dynamic values
-        context.put("projectName", PomOperator.getProjectIdentifierFromPomFile(projectPomLocation));
-        context.put("javaVersion", PomOperator.getJavaVersionFromPomFile(projectPomLocation));
+        context.put("projectName", pomOperator.getProjectIdentifierFromPomFile(projectPomLocation));
+        context.put("javaVersion", pomOperator.getJavaVersionFromPomFile(projectPomLocation));
         List<MtaIssue> generalIssues = mtaIssuesList.stream().filter(MtaIssue::getGeneralIssue).collect(Collectors.toUnmodifiableList());
         context.put("generalIssues", generalIssues.iterator());
         context.put("generalIssuesListSize", generalIssues.size());
@@ -76,7 +86,7 @@ public class ReportGenerator {
         context.put("reflectionUsageInProjectList", reflectionUsageInProject.iterator());
         context.put("reflectionUsageInProjectListSize", reflectionUsageInProject.size());
         context.put("withoutReflectionUsageOfDependencies", withoutReflectionUsageOfDependencies);
-        context.put("dependencyTree", printDependencyTree(dependencyNodes, reflectionUsageInDependencies).iterator());
+        context.put("dependencyTree", printDependencyTree(dependencyTreeRootNodes, reflectionUsageInDependencies).iterator());
         context.put("reflectionUsageInDependenciesListSize", reflectionUsageInDependencies.size());
         context.put("analysisFailuresList", AnalysisFailureCollector.getAnalysisFailures());
         context.put("analysisFailuresListSize", AnalysisFailureCollector.getAnalysisFailures().size());
@@ -102,7 +112,7 @@ public class ReportGenerator {
      * @param reflectionUsageInDependencies List with detected reflection usage in dependencies
      * @return Dependency tree root nodes
      */
-    private static List<String> printDependencyTree(List<DependencyNode> rootNodes,
+    private List<String> printDependencyTree(List<DependencyNode> rootNodes,
                                                     List<ReflectionUsageInDependencies> reflectionUsageInDependencies) {
 
         List<String> branches = new ArrayList<>();
@@ -141,7 +151,7 @@ public class ReportGenerator {
      * @param level                         Level for setting the text indent
      * @param alreadyAppended               List with already attached dependencies
      */
-    private static void buildBranchAsString(DependencyNode node, List<ReflectionUsageInDependencies> reflectionUsageInDependencies,
+    private void buildBranchAsString(DependencyNode node, List<ReflectionUsageInDependencies> reflectionUsageInDependencies,
                                             StringBuilder stringBuilder, Integer level, List<String> alreadyAppended) {
 
         for (DependencyNode child : node.getChildren()) {
