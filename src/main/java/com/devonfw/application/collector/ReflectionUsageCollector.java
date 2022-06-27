@@ -24,10 +24,10 @@ public class ReflectionUsageCollector {
     List<ReflectionUsageInProject> reflectionUsageInProject;
     List<ReflectionUsageInDependencies> reflectionUsageInDependencies;
 
-    public ReflectionUsageCollector(File inputProjectLocation, File resultFolderLocation) {
+    public ReflectionUsageCollector(File inputProjectLocation, List<List<String>> csvOutput) {
 
         reflectionUsageInDependencies = new ArrayList<>();
-        generateReflectionUsageInProjectList(CsvParser.parseCSV(resultFolderLocation), inputProjectLocation);
+        collectReflectionUsageInProject(csvOutput, inputProjectLocation);
     }
 
     /**
@@ -36,7 +36,7 @@ public class ReflectionUsageCollector {
      * @param csvOutput Output from CSV parser
      * @return reflection usage list
      */
-    private void generateReflectionUsageInProjectList(List<List<String>> csvOutput, File inputProjectLocation) {
+    private void collectReflectionUsageInProject(List<List<String>> csvOutput, File inputProjectLocation) {
 
         reflectionUsageInProject = new ArrayList<>();
 
@@ -58,13 +58,12 @@ public class ReflectionUsageCollector {
     public void collectReflectionUsageInDependencies(List<Artifact> dependencies, File resultFolderLocation) {
 
         reflectionUsageInDependencies = new ArrayList<>();
-        dependencies.forEach(library -> {
-            boolean execution = MtaExecutor.executeMtaToFindReflectionInLibrary(library.getFile(), resultFolderLocation);
+        dependencies.forEach(dependency -> {
+            boolean execution = MtaExecutor.executeMtaToFindReflectionInLibrary(dependency.getFile(), resultFolderLocation);
             List<List<String>> csvOutput = CsvParser.parseCSV(resultFolderLocation);
-            List<ReflectionUsageInDependencies> reflectionUsageInDependencies = generateReflectionUsageInDependenciesList(csvOutput);
-            reflectionUsageInDependencies.addAll(reflectionUsageInDependencies);
+            generateReflectionUsageInDependenciesList(csvOutput);
         });
-        DependencyUtilities.mapJarFilesToFullArtifactNames(reflectionUsageInDependencies, dependencies);
+        reflectionUsageInDependencies = DependencyUtilities.mapJarFilesToFullArtifactNames(reflectionUsageInDependencies, dependencies);
     }
 
     /**
@@ -73,29 +72,26 @@ public class ReflectionUsageCollector {
      * @param csvOutput Output from CSV parser
      * @return reflection usage list
      */
-    private List<ReflectionUsageInDependencies> generateReflectionUsageInDependenciesList(List<List<String>> csvOutput) {
-
-        List<ReflectionUsageInDependencies> reflectionUsage = new ArrayList<>();
+    private void generateReflectionUsageInDependenciesList(List<List<String>> csvOutput) {
 
         for (List<String> csvEntry : csvOutput) {
             if (csvEntry.get(1).equals("reflection")) {
                 String jarFile = csvEntry.get(10);
                 String className = csvEntry.get(6);
 
-                Optional<ReflectionUsageInDependencies> optionalReflectionUsageInDependency = reflectionUsage.stream()
+                Optional<ReflectionUsageInDependencies> optionalReflectionUsageInDependency = reflectionUsageInDependencies.stream()
                         .filter(reflectionUsageInDependency -> reflectionUsageInDependency.getJarFile().equals(jarFile))
                         .findAny();
                 if (optionalReflectionUsageInDependency.isPresent()) {
-                    reflectionUsage.get(reflectionUsage.indexOf(optionalReflectionUsageInDependency.get())).getClasses()
+                    reflectionUsageInDependencies.get(reflectionUsageInDependencies.indexOf(optionalReflectionUsageInDependency.get())).getClasses()
                             .add(className);
                 } else {
                     ArrayList<String> classes = new ArrayList<>();
                     classes.add(className);
-                    reflectionUsage.add(new ReflectionUsageInDependencies(jarFile, classes));
+                    reflectionUsageInDependencies.add(new ReflectionUsageInDependencies(jarFile, classes));
                 }
             }
         }
-        return reflectionUsage;
     }
 
     public List<ReflectionUsageInProject> getReflectionUsageInProject() {

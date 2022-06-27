@@ -29,10 +29,9 @@ public class MtaIssuesCollector {
 
     List<MtaIssue> mtaIssuesList;
 
-    public MtaIssuesCollector(File inputProjectLocation, File resultFolderLocation) {
+    public MtaIssuesCollector(List<List<String>> csvOutput) {
 
-        MtaExecutor.executeMtaForProject(inputProjectLocation, resultFolderLocation);
-        generateMtaIssuesList(CsvParser.parseCSV(resultFolderLocation));
+        generateMtaIssuesList(csvOutput);
     }
 
     /**

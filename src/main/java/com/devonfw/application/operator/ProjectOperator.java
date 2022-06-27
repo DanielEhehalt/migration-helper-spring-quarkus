@@ -36,6 +36,7 @@ public class ProjectOperator {
 
     public ProjectOperator(File inputProjectLocation, File mavenRepoLocation, File applicationEntryPointLocation) {
 
+        totalJavaClassesScanned = 0;
         collectAllApplicationStartupLibrariesOfProject(inputProjectLocation, mavenRepoLocation, applicationEntryPointLocation);
     }
 
@@ -151,7 +152,6 @@ public class ProjectOperator {
      */
     private void count(File file, List<ProjectDependency> dependencyBlacklist) {
 
-        totalJavaClassesScanned = 0;
         JavaProjectBuilder builder = new JavaProjectBuilder();
         try {
             builder.addSource(new FileReader(file));
@@ -164,7 +164,7 @@ public class ProjectOperator {
         for (JavaSource source : sources) {
             List<ProjectDependency> alreadyCountedForThisSource = new ArrayList<>();
             List<String> importStatements = source.getImports();
-            totalJavaClassesScanned++;
+            totalJavaClassesScanned = totalJavaClassesScanned + 1;
             for (String importStatement : importStatements) {
                 mapAndCount(dependencyBlacklist, alreadyCountedForThisSource, importStatement);
             }

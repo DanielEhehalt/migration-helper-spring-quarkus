@@ -5,16 +5,21 @@ import com.devonfw.application.collector.MtaIssuesCollector;
 import com.devonfw.application.collector.ReflectionUsageCollector;
 import com.devonfw.application.operator.DependencyTreeOperator;
 import com.devonfw.application.operator.ProjectOperator;
+import com.devonfw.application.util.CsvParser;
+import com.devonfw.application.util.MtaExecutor;
 import com.devonfw.application.util.ReportGenerator;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.config.Configurator;
+import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import java.io.File;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Manages CLI and initiates the analysis steps
@@ -104,15 +109,22 @@ public class Application implements Runnable {
         ProjectOperator projectOperator = new ProjectOperator(inputProjectLocation, mavenRepoLocation, applicationEntryPointLocation);
         DependencyTreeOperator dependencyTreeOperator = new DependencyTreeOperator(projectPomLocation, mavenRepoLocation,
                 projectOperator.getApplicationStartupLibrariesOfProject());
-        MtaIssuesCollector mtaIssuesCollector = new MtaIssuesCollector(inputProjectLocation, resultFolderLocation);
-        ReflectionUsageCollector reflectionUsageCollector = new ReflectionUsageCollector(inputProjectLocation, resultFolderLocation);
+
+        MtaExecutor.executeMtaForProject(inputProjectLocation, resultFolderLocation);
+        List<List<String>> csvOutput = CsvParser.parseCSV(resultFolderLocation);
+
+        MtaIssuesCollector mtaIssuesCollector = new MtaIssuesCollector(csvOutput);
+        ReflectionUsageCollector reflectionUsageCollector = new ReflectionUsageCollector(inputProjectLocation, csvOutput);
         DependencyBlacklistCollector dependencyBlacklistCollector = new DependencyBlacklistCollector(mtaIssuesCollector.getMtaIssuesList(),
                 dependencyTreeOperator.getProjectDependencies(), dependencyTreeOperator.getDependencyTreeRootNodes());
 
         projectOperator.occurrenceMeasurement(new File(applicationEntryPointLocation.getParent()),
                 dependencyBlacklistCollector.getDependencyBlacklist(), dependencyTreeOperator);
+
         if (!withoutReflectionUsageOfDependencies) {
-            reflectionUsageCollector.collectReflectionUsageInDependencies(dependencyTreeOperator.getAllArtifactsOfProject(),
+            List<Artifact> artifacts = new ArrayList<>();
+            artifacts.add(dependencyTreeOperator.getAllArtifactsOfProject().get(2));
+            reflectionUsageCollector.collectReflectionUsageInDependencies(artifacts,
                     resultFolderLocation);
         }
 
