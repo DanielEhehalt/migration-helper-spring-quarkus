@@ -122,9 +122,7 @@ public class Application implements Runnable {
                 dependencyBlacklistCollector.getDependencyBlacklist(), dependencyTreeOperator);
 
         if (!withoutReflectionUsageOfDependencies) {
-            List<Artifact> artifacts = new ArrayList<>();
-            artifacts.add(dependencyTreeOperator.getAllArtifactsOfProject().get(2));
-            reflectionUsageCollector.collectReflectionUsageInDependencies(artifacts,
+            reflectionUsageCollector.collectReflectionUsageInDependencies(dependencyTreeOperator.getAllArtifactsOfProject(),
                     resultFolderLocation);
         }
 
