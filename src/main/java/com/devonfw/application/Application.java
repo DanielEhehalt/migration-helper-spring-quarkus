@@ -12,14 +12,12 @@ import com.devonfw.application.util.ReportGenerator;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.eclipse.aether.artifact.Artifact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
 
 import java.io.File;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 
 /**

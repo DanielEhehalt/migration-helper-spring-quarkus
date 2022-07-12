@@ -48,7 +48,15 @@ public class ProjectOperator {
 
         MavenDependencyCollector dependencyCollector =
                 new MavenDependencyCollector(new MavenBridgeImpl(mavenRepoLocation), false, true, null);
-        JavaContext context = JavaSourceProviderUsingMaven.createFromLocalMavenProject(inputProjectLocation, dependencyCollector);
+        JavaContext context;
+        try {
+            context = JavaSourceProviderUsingMaven.createFromLocalMavenProject(inputProjectLocation, dependencyCollector);
+        } catch (Exception e) {
+            LOG.error("Failed to read effective model for this project. Please build the project with mvn package load the dependencies in your local maven repository", e);
+            System.exit(5);
+            return;
+        }
+
         String fqnOfClass = getFQN(applicationEntryPointLocation.toPath());
         try {
             context.getClassLoader().loadClass(fqnOfClass);
