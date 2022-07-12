@@ -213,6 +213,7 @@ public class ReportGenerator {
     }
 
     private String getDescriptionOfOccurrenceMeasurement() {
+
         return "The occurrence measurement indicates the strength of the bonding between the dependency and the code. " +
                 "For this purpose, all import statements of all Java classes of the project are analyzed. " +
                 "For the assignment all possible packages and classes of a dependency are collected. " +
@@ -221,17 +222,20 @@ public class ReportGenerator {
     }
 
     private String getDescriptionOfReflectionUsageInProject() {
+
         return "For determining the reflection usage in the code of the project, all import statements are checked for the occurrence of the java.lang.reflect package. " +
                 "If a class is found that imports the reflection API, it is displayed below.";
     }
 
     private String getDescriptionOfReflectionUsageInDependencies() {
+
         return "For determining the reflection usage in the dependencies, all import statements of a dependency are checked for the occurrence of the java.lang.reflect package. " +
                 "The number of classes that imports the reflection API are shown in the brackets. The names of the identified classes can be displayed using the button next to it. " +
                 "To shorten the tree, duplicate entries are marked with an asterisk and are not further executed.";
     }
 
     private String getDescriptionOfAnalysisFailures() {
+
         return "To ensure the stability of the execution of the analysis, exceptions are just collected and displayed below. " +
                 "For a more detailed failure analysis the use of the --verbose argument is recommended.";
     }

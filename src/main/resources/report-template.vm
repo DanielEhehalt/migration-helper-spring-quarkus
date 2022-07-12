@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-    <title>QMaid Quarkus Migration Aid</title>
+    <title>QMAid Quarkus Migration Aid</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 </head>
 <body>
@@ -19,13 +19,13 @@
     <h1>Report for project: $projectName</h1>
     <strong>Java version: $javaVersion. Quarkus minimum is Java 11</strong>
 
-    <h2>General Issues (found: $generalIssuesListSize) <button onclick="toggleDisplay('descriptionOfGeneralIssues')">+</button></h2>
+    <h2>General Issues (found: $generalIssuesListSize) <button onclick="toggleDisplay('descriptionOfGeneralIssues')">Info</button></h2>
     <div style="display:none" id="descriptionOfGeneralIssues"><p>$descriptionOfGeneralIssues</p></div>
     #foreach($generalIssue in $generalIssues)
         <p>$generalIssue.description</p>
     #end
 
-    <h2>Blacklisted Dependencies (found: $dependencyBlacklistSize) <button onclick="toggleDisplay('descriptionOfBlacklistedDependencies')">+</button></h2>
+    <h2>Blacklisted Dependencies (found: $dependencyBlacklistSize) <button onclick="toggleDisplay('descriptionOfBlacklistedDependencies')">Info</button></h2>
     <div style="display:none" id="descriptionOfBlacklistedDependencies"><p>$descriptionOfBlacklistedDependencies</p></div>
     <div style="display:none" id="descriptionOfOccurrenceMeasurement"><p>$descriptionOfOccurrenceMeasurement</p></div>
     <table>
@@ -33,7 +33,7 @@
             <th>GroupId</th>
             <th>ArtifactId</th>
             <th>Version</th>
-            <th>Occurrence in Java classes <button onclick="toggleDisplay('descriptionOfOccurrenceMeasurement')">+</button></th>
+            <th>Occurrence in Java classes <button onclick="toggleDisplay('descriptionOfOccurrenceMeasurement')">Info</button></th>
             <th>Description</th>
         </tr>
         #foreach($blacklistEntry in $dependencyBlacklist)
@@ -47,7 +47,7 @@
         #end
     </table>
 
-    <h2>Reflection usage in project (found: $reflectionUsageInProjectListSize) <button onclick="toggleDisplay('descriptionOfReflectionUsageInProject')">+</button></h2>
+    <h2>Reflection usage in project (found: $reflectionUsageInProjectListSize) <button onclick="toggleDisplay('descriptionOfReflectionUsageInProject')">Info</button></h2>
     <div style="display:none" id="descriptionOfReflectionUsageInProject"><p>$descriptionOfReflectionUsageInProject</p></div>
     #if($reflectionUsageInProjectListSize > 0)
         <table>
@@ -65,14 +65,14 @@
     #end
 
     #if(!$withoutDependencyAnalysis)
-        <h2>Reflection usage in dependencies as dependency tree (found: $reflectionUsageInDependenciesListSize) <button onclick="toggleDisplay('descriptionOfReflectionUsageInDependencies')">+</button></h2>
+        <h2>Reflection usage in dependencies as dependency tree (found: $reflectionUsageInDependenciesListSize) <button onclick="toggleDisplay('descriptionOfReflectionUsageInDependencies')">Info</button></h2>
         <div style="display:none" id="descriptionOfReflectionUsageInDependencies"><p>$descriptionOfReflectionUsageInDependencies</p></div>
         #foreach($branch in $dependencyTree)
             $branch
         #end
     #end
 
-    <h2>Analysis Failures (found: $analysisFailuresListSize) <button onclick="toggleDisplay('descriptionOfAnalysisFailures')">+</button></h2>
+    <h2>Analysis Failures (found: $analysisFailuresListSize) <button onclick="toggleDisplay('descriptionOfAnalysisFailures')">Info</button></h2>
     <div style="display:none" id="descriptionOfAnalysisFailures"><p>$descriptionOfAnalysisFailures</p></div>
     #if($analysisFailuresListSize > 0)
         <table>

@@ -1,4 +1,4 @@
-# QMaid Quarkus Migration Aid
+# QMAid Quarkus Migration Aid
 
 This migration helper analyzes Spring Boot microservices in terms of migration capability to Quarkus. After various analyses, a decision aid is created that estimates the effort and identifies tasks. Currently, only Maven is supported as build tool. This tool focuses on microservices. The analysis of projects with multiple modules is possible with limitations. When specifying the project location, the folder of the module containing the application entry class must be specified.
 

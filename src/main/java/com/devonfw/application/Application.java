@@ -26,7 +26,7 @@ import java.util.List;
  * Manages CLI and initiates the analysis steps
  */
 @CommandLine.Command(
-        name = "QMaid",
+        name = "QMAid",
         description = "Quarkus Migration Aid"
 )
 public class Application implements Runnable {
@@ -119,23 +119,12 @@ public class Application implements Runnable {
         ReflectionUsageCollector reflectionUsageCollector = new ReflectionUsageCollector(inputProjectLocation, mtaOutput);
 
         if (!withoutDependencyAnalysis) {
-            List<Artifact> shortenLibs = new ArrayList<>();
-            shortenLibs.add(dependencyTreeOperator.getAllArtifactsOfProject().get(15));
-            shortenLibs.add(dependencyTreeOperator.getAllArtifactsOfProject().get(26));
-            shortenLibs.add(dependencyTreeOperator.getAllArtifactsOfProject().get(35));
-            shortenLibs.forEach(dependency -> {
+            dependencyTreeOperator.getAllArtifactsOfProject().forEach(dependency -> {
                 MtaExecutor.executeMtaForLibrary(dependency.getFile(), resultFolderLocation);
                 List<List<String>> mtaOutputDependency = CsvParser.parseCSV(resultFolderLocation);
                 mtaIssuesCollector.generateMtaIssuesList(mtaOutputDependency);
                 reflectionUsageCollector.generateReflectionUsageInDependenciesList(mtaOutputDependency);
             });
-
-//            dependencyTreeOperator.getAllArtifactsOfProject().forEach(dependency -> {
-//                MtaExecutor.executeMtaForLibrary(dependency.getFile(), resultFolderLocation);
-//                List<List<String>> mtaOutputDependency = CsvParser.parseCSV(resultFolderLocation);
-//                mtaIssuesCollector.generateMtaIssuesList(mtaOutputDependency);
-//                reflectionUsageCollector.generateReflectionUsageInDependenciesList(mtaOutputDependency);
-//            });
             reflectionUsageCollector.setReflectionUsageInDependencies(
                     DependencyUtilities.mapJarFilesToFullArtifactNames(reflectionUsageCollector.getReflectionUsageInDependencies(),
                             dependencyTreeOperator.getAllArtifactsOfProject()));

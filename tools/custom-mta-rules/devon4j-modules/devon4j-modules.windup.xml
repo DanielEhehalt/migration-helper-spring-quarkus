@@ -46,9 +46,9 @@
                 </or>
             </when>
             <perform>
-                <hint title="Devon4j http modules must be replaced with the quarkus REST client. https://quarkus.io/guides/spring-web"
+                <hint title="devon4j http modules must be replaced with the quarkus REST client. https://quarkus.io/guides/spring-web"
                       category-id="mandatory" effort="1">
-                    <message>Devon4j http modules must be replaced with the quarkus REST client. https://quarkus.io/guides/spring-web
+                    <message>devon4j http modules must be replaced with the quarkus REST client. https://quarkus.io/guides/spring-web
                     </message>
                 </hint>
             </perform>
@@ -68,9 +68,9 @@
                 </or>
             </when>
             <perform>
-                <hint title="Devon4j module security must be replaced with Quarkus security extension."
+                <hint title="devon4j module security must be replaced with Quarkus security extension."
                       category-id="mandatory" effort="1">
-                    <message>Devon4j module security must be replaced with Quarkus security extension.
+                    <message>devon4j module security must be replaced with Quarkus security extension.
                     </message>
                 </hint>
             </perform>
@@ -93,9 +93,9 @@
                 </or>
             </when>
             <perform>
-                <hint title="Devon4j JPA modules must be replaced by a Quarkus JPA extension or by the vanilla spring-data module. The devon4j-project recommend the use of vanilla spring-data."
+                <hint title="devon4j JPA modules must be replaced by a Quarkus JPA extension or by the vanilla spring-data module. The devon4j-project recommend the use of vanilla spring-data."
                       category-id="mandatory" effort="1">
-                    <message>Devon4j JPA modules must be replaced by a Quarkus JPA extension or by the vanilla spring-data module. The devon4j-project recommend the use of vanilla spring-data.
+                    <message>devon4j JPA modules must be replaced by a Quarkus JPA extension or by the vanilla spring-data module. The devon4j-project recommend the use of vanilla spring-data.
                     </message>
                 </hint>
             </perform>
@@ -115,9 +115,9 @@
                 </or>
             </when>
             <perform>
-                <hint title="Devon4j beanmapping modules must be replaced by MapStruct. https://github.com/devonfw/devon4j/blob/master/documentation/quarkus/guide-beanmapping-quarkus.asciidoc"
+                <hint title="devon4j beanmapping modules must be replaced by MapStruct. https://github.com/devonfw/devon4j/blob/master/documentation/quarkus/guide-beanmapping-quarkus.asciidoc"
                       category-id="mandatory" effort="1">
-                    <message>Devon4j beanmapping modules must be replaced by MapStruct. https://github.com/devonfw/devon4j/blob/master/documentation/quarkus/guide-beanmapping-quarkus.asciidoc
+                    <message>devon4j beanmapping modules must be replaced by MapStruct. https://github.com/devonfw/devon4j/blob/master/documentation/quarkus/guide-beanmapping-quarkus.asciidoc
                     </message>
                 </hint>
             </perform>
