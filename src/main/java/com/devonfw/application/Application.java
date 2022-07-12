@@ -6,6 +6,7 @@ import com.devonfw.application.collector.ReflectionUsageCollector;
 import com.devonfw.application.operator.DependencyTreeOperator;
 import com.devonfw.application.operator.ProjectOperator;
 import com.devonfw.application.util.CsvParser;
+import com.devonfw.application.util.DependencyUtilities;
 import com.devonfw.application.util.MtaExecutor;
 import com.devonfw.application.util.ReportGenerator;
 import org.apache.logging.log4j.Level;
@@ -25,8 +26,8 @@ import java.util.List;
  * Manages CLI and initiates the analysis steps
  */
 @CommandLine.Command(
-        name = "Migration Helper Spring Quarkus",
-        description = "Helps you"
+        name = "QMaid",
+        description = "Quarkus Migration Aid"
 )
 public class Application implements Runnable {
 
@@ -46,7 +47,7 @@ public class Application implements Runnable {
 
     @CommandLine.Option(names = {"-wd", "--withoutDependencies"}, defaultValue = "false",
             description = "With analysis of the reflection usage of the dependencies")
-    private Boolean withoutReflectionUsageOfDependencies;
+    private Boolean withoutDependencyAnalysis;
 
     @CommandLine.Option(names = {"-v", "--verbose"}, defaultValue = "false", description = "Enable debug logging")
     private Boolean debugLoggingEnabled;
@@ -85,10 +86,9 @@ public class Application implements Runnable {
             File mavenRepoLocation = new File(this.mavenRepo);
             File applicationEntryPointLocation = new File(this.app);
             File projectPomLocation = new File(this.inputProject + File.separator + "pom.xml");
+            File resultFolderLocation = new File(createDirectoryForResults());
 
             checkIfFilesExist(inputProjectLocation, mavenRepoLocation, applicationEntryPointLocation, projectPomLocation);
-
-            File resultFolderLocation = new File(createDirectoryForResults());
 
             LOG.info("Start the analysis");
             LOG.info("Project location: " + inputProjectLocation);
@@ -111,26 +111,47 @@ public class Application implements Runnable {
                 projectOperator.getApplicationStartupLibrariesOfProject());
 
         MtaExecutor.executeMtaForProject(inputProjectLocation, resultFolderLocation);
-        List<List<String>> csvOutput = CsvParser.parseCSV(resultFolderLocation);
+        List<List<String>> mtaOutput = CsvParser.parseCSV(resultFolderLocation);
 
-        MtaIssuesCollector mtaIssuesCollector = new MtaIssuesCollector(csvOutput);
-        ReflectionUsageCollector reflectionUsageCollector = new ReflectionUsageCollector(inputProjectLocation, csvOutput);
+        MtaIssuesCollector mtaIssuesCollector = new MtaIssuesCollector();
+        mtaIssuesCollector.generateMtaIssuesList(mtaOutput);
+
+        ReflectionUsageCollector reflectionUsageCollector = new ReflectionUsageCollector(inputProjectLocation, mtaOutput);
+
+        if (!withoutDependencyAnalysis) {
+            List<Artifact> shortenLibs = new ArrayList<>();
+            shortenLibs.add(dependencyTreeOperator.getAllArtifactsOfProject().get(15));
+            shortenLibs.add(dependencyTreeOperator.getAllArtifactsOfProject().get(26));
+            shortenLibs.add(dependencyTreeOperator.getAllArtifactsOfProject().get(35));
+            shortenLibs.forEach(dependency -> {
+                MtaExecutor.executeMtaForLibrary(dependency.getFile(), resultFolderLocation);
+                List<List<String>> mtaOutputDependency = CsvParser.parseCSV(resultFolderLocation);
+                mtaIssuesCollector.generateMtaIssuesList(mtaOutputDependency);
+                reflectionUsageCollector.generateReflectionUsageInDependenciesList(mtaOutputDependency);
+            });
+
+//            dependencyTreeOperator.getAllArtifactsOfProject().forEach(dependency -> {
+//                MtaExecutor.executeMtaForLibrary(dependency.getFile(), resultFolderLocation);
+//                List<List<String>> mtaOutputDependency = CsvParser.parseCSV(resultFolderLocation);
+//                mtaIssuesCollector.generateMtaIssuesList(mtaOutputDependency);
+//                reflectionUsageCollector.generateReflectionUsageInDependenciesList(mtaOutputDependency);
+//            });
+            reflectionUsageCollector.setReflectionUsageInDependencies(
+                    DependencyUtilities.mapJarFilesToFullArtifactNames(reflectionUsageCollector.getReflectionUsageInDependencies(),
+                            dependencyTreeOperator.getAllArtifactsOfProject()));
+        }
+
         DependencyBlacklistCollector dependencyBlacklistCollector = new DependencyBlacklistCollector(mtaIssuesCollector.getMtaIssuesList(),
                 dependencyTreeOperator.getProjectDependencies(), dependencyTreeOperator.getDependencyTreeRootNodes());
 
         projectOperator.occurrenceMeasurement(new File(applicationEntryPointLocation.getParent()),
                 dependencyBlacklistCollector.getDependencyBlacklist(), dependencyTreeOperator);
 
-        if (!withoutReflectionUsageOfDependencies) {
-            reflectionUsageCollector.collectReflectionUsageInDependencies(dependencyTreeOperator.getAllArtifactsOfProject(),
-                    resultFolderLocation);
-        }
-
         ReportGenerator reportGenerator = new ReportGenerator(dependencyBlacklistCollector.getDependencyBlacklist(),
                 projectOperator.getTotalJavaClassesScanned(), mtaIssuesCollector.getMtaIssuesList(),
                 reflectionUsageCollector.getReflectionUsageInProject(),
                 reflectionUsageCollector.getReflectionUsageInDependencies(), dependencyTreeOperator.getDependencyTreeRootNodes(),
-                projectPomLocation, resultFolderLocation, withoutReflectionUsageOfDependencies);
+                projectPomLocation, resultFolderLocation, withoutDependencyAnalysis);
     }
 
     /**
@@ -174,16 +195,16 @@ public class Application implements Runnable {
      */
     private String printHelp() {
 
-        return "This migration helper analyzes Spring Boot projects in terms of migration capability to Quarkus.\n" +
+        return "This migration helper analyzes Spring Boot microservices in terms of migration capability to Quarkus.\n" +
                 "After various analyses, a decision aid is created that estimates the effort and identifies tasks.\n" +
-                "Currently only Maven is supported as build tool.\n\n" +
-                "For a better result the project to be analyzed must be built (mvn package).\n" +
-                "Otherwise the dependencies are not available in the local Maven repository.\n\n" +
+                "Currently, only Maven is supported as build tool. This tool focuses on microservices.\n" +
+                "The analysis of projects with multiple modules is possible with limitations.\n" +
+                "When specifying the project location, the folder of the module containing the application entry class must be specified.\n\n" +
 
                 "Options:\n" +
-                "-p  --project                Maven project location\n" +
-                "-a  --app                    Application entry point location (@SpringBootApplication)\n" +
-                "-m  --mavenRepo              Local Maven repository location\n" +
+                "-p  --project                Maven project location (mandatory)\n" +
+                "-a  --app                    Application entry point location (@SpringBootApplication) (mandatory)\n" +
+                "-m  --mavenRepo              Local Maven repository location (mandatory)\n" +
                 "-wd --withoutDependencies    Without analysis of the reflection usage of the dependencies. This analysis can take a very long time\n" +
                 "-v  --verbose                Enable debug logging\n" +
                 "-h  --help                   Display help";

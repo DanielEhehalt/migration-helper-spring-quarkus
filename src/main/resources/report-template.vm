@@ -1,25 +1,39 @@
 <!doctype html>
 <html>
 <head>
-    <title>Migration Helper Spring Quarkus</title>
+    <title>QMaid Quarkus Migration Aid</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 </head>
 <body>
+    <script>
+        function toggleDisplay(element) {
+            var e = document.getElementById(element);
+            if (e.style.display === "none") {
+                e.style.display = "block";
+            } else {
+                e.style.display = "none";
+            }
+        }
+    </script>
+
     <h1>Report for project: $projectName</h1>
     <strong>Java version: $javaVersion. Quarkus minimum is Java 11</strong>
 
-    <h2>General Issues (found: $generalIssuesListSize)</h2>
+    <h2>General Issues (found: $generalIssuesListSize) <button onclick="toggleDisplay('descriptionOfGeneralIssues')">+</button></h2>
+    <div style="display:none" id="descriptionOfGeneralIssues"><p>$descriptionOfGeneralIssues</p></div>
     #foreach($generalIssue in $generalIssues)
         <p>$generalIssue.description</p>
     #end
 
-    <h2>Blacklisted Dependencies (found: $dependencyBlacklistSize)</h2>
+    <h2>Blacklisted Dependencies (found: $dependencyBlacklistSize) <button onclick="toggleDisplay('descriptionOfBlacklistedDependencies')">+</button></h2>
+    <div style="display:none" id="descriptionOfBlacklistedDependencies"><p>$descriptionOfBlacklistedDependencies</p></div>
+    <div style="display:none" id="descriptionOfOccurrenceMeasurement"><p>$descriptionOfOccurrenceMeasurement</p></div>
     <table>
         <tr>
             <th>GroupId</th>
             <th>ArtifactId</th>
             <th>Version</th>
-            <th>Occurrence in Java classes</th>
+            <th>Occurrence in Java classes <button onclick="toggleDisplay('descriptionOfOccurrenceMeasurement')">+</button></th>
             <th>Description</th>
         </tr>
         #foreach($blacklistEntry in $dependencyBlacklist)
@@ -33,41 +47,46 @@
         #end
     </table>
 
-    <h2>Reflection usage in project (found: $reflectionUsageInProjectListSize)</h2>
-    <table>
-        <tr>
-            <th>Class</th>
-            <th>Path</th>
-        </tr>
-        #foreach($reflectionUsage in $reflectionUsageInProjectList)
+    <h2>Reflection usage in project (found: $reflectionUsageInProjectListSize) <button onclick="toggleDisplay('descriptionOfReflectionUsageInProject')">+</button></h2>
+    <div style="display:none" id="descriptionOfReflectionUsageInProject"><p>$descriptionOfReflectionUsageInProject</p></div>
+    #if($reflectionUsageInProjectListSize > 0)
+        <table>
             <tr>
-                <td>$reflectionUsage.className</td>
-                <td>$reflectionUsage.path</td>
+                <th>Class</th>
+                <th>Path</th>
             </tr>
-        #end
-    </table>
+            #foreach($reflectionUsage in $reflectionUsageInProjectList)
+                <tr>
+                    <td>$reflectionUsage.className</td>
+                    <td>$reflectionUsage.path</td>
+                </tr>
+            #end
+        </table>
+    #end
 
-    #if(!$withoutReflectionUsageOfDependencies)
-        <h2>Reflection usage in dependencies as dependency tree (found: $reflectionUsageInDependenciesListSize)</h2>
-        <p>To shorten the tree, duplicate entries are marked with an asterisk and are not further executed.</p>
+    #if(!$withoutDependencyAnalysis)
+        <h2>Reflection usage in dependencies as dependency tree (found: $reflectionUsageInDependenciesListSize) <button onclick="toggleDisplay('descriptionOfReflectionUsageInDependencies')">+</button></h2>
+        <div style="display:none" id="descriptionOfReflectionUsageInDependencies"><p>$descriptionOfReflectionUsageInDependencies</p></div>
         #foreach($branch in $dependencyTree)
             $branch
         #end
     #end
 
-    <h2>Analysis Failures (found: $analysisFailuresListSize)</h2>
-    <p>To ensure the stability of the execution of the analysis, exceptions are just collected and displayed below. For a more detailed failure analysis the use of the --verbose argument is recommended.</p>
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-        </tr>
-        #foreach($analysisFailure in $analysisFailuresList)
+    <h2>Analysis Failures (found: $analysisFailuresListSize) <button onclick="toggleDisplay('descriptionOfAnalysisFailures')">+</button></h2>
+    <div style="display:none" id="descriptionOfAnalysisFailures"><p>$descriptionOfAnalysisFailures</p></div>
+    #if($analysisFailuresListSize > 0)
+        <table>
             <tr>
-                <td>$analysisFailure.name</td>
-                <td>$analysisFailure.description</td>
+                <th>Name</th>
+                <th>Description</th>
             </tr>
-        #end
-    </table>
+            #foreach($analysisFailure in $analysisFailuresList)
+                <tr>
+                    <td>$analysisFailure.name</td>
+                    <td>$analysisFailure.description</td>
+                </tr>
+            #end
+        </table>
+    #end
 </body>
 </html>

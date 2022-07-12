@@ -29,25 +29,23 @@ public class MtaIssuesCollector {
 
     List<MtaIssue> mtaIssuesList;
 
-    public MtaIssuesCollector(List<List<String>> csvOutput) {
+    public MtaIssuesCollector() {
 
-        generateMtaIssuesList(csvOutput);
+        mtaIssuesList = new ArrayList<>();
     }
 
     /**
      * This method converts the output from the CSV parser to a list with MTA issues
      *
      * @param csvOutput Output from CSV parser
-     * @return List with MTA issues
      */
-    private void generateMtaIssuesList(List<List<String>> csvOutput) {
-
-        mtaIssuesList = new ArrayList<>();
+    public void generateMtaIssuesList(List<List<String>> csvOutput) {
 
         for (List<String> entry : csvOutput) {
             if (entry.get(1).equals("mandatory")) {
                 String mtaRuleId = entry.get(0);
                 String description = entry.get(2);
+
                 //Searches for duplicate entries. MTA generates irrelevant duplicate entries
                 if (mtaIssuesList.stream().noneMatch(mtaIssue -> mtaIssue.getMtaRuleId().equals(mtaRuleId))) {
                     mtaIssuesList.add(new MtaIssue(mtaRuleId, description));

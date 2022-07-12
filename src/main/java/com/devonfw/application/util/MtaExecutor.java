@@ -22,9 +22,8 @@ public class MtaExecutor {
      *
      * @param inputProjectLocation  Path to the project which should be analyzed
      * @param resultFolderLocation  Path to the directory where the results will be saved
-     * @return If execution was successful
      */
-    public static boolean executeMtaForProject(File inputProjectLocation, File resultFolderLocation) {
+    public static void executeMtaForProject(File inputProjectLocation, File resultFolderLocation) {
 
         ProcessBuilder builder = new ProcessBuilder();
         builder.redirectErrorStream(true);
@@ -54,21 +53,18 @@ public class MtaExecutor {
             //Waiting for successful end of execution
             int exitCode = process.waitFor();
             assert exitCode == 0;
-            return true;
         } catch (IOException | InterruptedException e) {
             LOG.error("MTA execution failed.", e);
-            return false;
         }
     }
 
     /**
-     * This method runs the Red Hat Migration Toolkit for Applications (MTA) to find reflection calls in a library
+     * This method runs the Red Hat Migration Toolkit for Applications (MTA) to find reflection calls and migration issues in a library
      *
      * @param libraryLocation Path to the jar file which should be analyzed
      * @param resultFolderLocation      Path to the directory where the results will be saved
-     * @return If execution was successful
      */
-    public static boolean executeMtaToFindReflectionInLibrary(File libraryLocation, File resultFolderLocation) {
+    public static void executeMtaForLibrary(File libraryLocation, File resultFolderLocation) {
 
         ProcessBuilder builder = new ProcessBuilder();
         builder.redirectErrorStream(true);
@@ -77,6 +73,7 @@ public class MtaExecutor {
         builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",
                 "--input", libraryLocation.toString(),
                 "--output", resultFolderLocation.toString(),
+                "--target", "quarkus",
                 "--target", "reflection",
                 "--exportCSV",
                 "--batchMode",
@@ -96,12 +93,10 @@ public class MtaExecutor {
             //Waiting for successful end of execution
             int exitCode = process.waitFor();
             assert exitCode == 0;
-            return true;
         } catch (IOException | InterruptedException e) {
             AnalysisFailureCollector.addAnalysisFailure(
                     new AnalysisFailureEntry(libraryLocation.toString(), "MTA reflection analysis failed."));
             LOG.debug("MTA reflection analysis failed.", e);
-            return false;
         }
     }
 

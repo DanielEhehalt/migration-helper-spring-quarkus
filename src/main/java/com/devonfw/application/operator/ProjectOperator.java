@@ -124,8 +124,7 @@ public class ProjectOperator {
      * @param dependencyBlacklist     List with the blacklisted dependencies
      * @param dependencyTreeOperator  DependencyTreeOperator to get all project dependencies
      */
-    public void occurrenceMeasurement(File entry, List<ProjectDependency> dependencyBlacklist,
-                                      DependencyTreeOperator dependencyTreeOperator) {
+    public void occurrenceMeasurement(File entry, List<ProjectDependency> dependencyBlacklist, DependencyTreeOperator dependencyTreeOperator) {
 
         dependencyTreeOperator.enhanceProjectDependencyWithPackagesAndClasses(dependencyBlacklist);
         File[] files = entry.listFiles();

@@ -2,9 +2,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.devonfw</groupId>
-    <artifactId>migration-helper-spring-quarkus</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>Migration-Helper-Spring-Quarkus</name>
+    <artifactId>qmaid</artifactId>
+    <version>0.1</version>
+    <name>QMaid Quarkus Migration Aid</name>
     <description>This migration helper analyzes Spring Boot projects in terms of migration capability to Quarkus
     </description>
 

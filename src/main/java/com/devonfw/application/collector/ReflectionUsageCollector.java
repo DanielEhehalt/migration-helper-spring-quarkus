@@ -50,29 +50,11 @@ public class ReflectionUsageCollector {
     }
 
     /**
-     * This method runs the MTA for all specified dependencies and collects the reflection usage of these dependencies
-     *
-     * @param dependencies         Libraries to analyze
-     * @param resultFolderLocation Path for analysis results
-     */
-    public void collectReflectionUsageInDependencies(List<Artifact> dependencies, File resultFolderLocation) {
-
-        reflectionUsageInDependencies = new ArrayList<>();
-        dependencies.forEach(dependency -> {
-            boolean execution = MtaExecutor.executeMtaToFindReflectionInLibrary(dependency.getFile(), resultFolderLocation);
-            List<List<String>> csvOutput = CsvParser.parseCSV(resultFolderLocation);
-            generateReflectionUsageInDependenciesList(csvOutput);
-        });
-        reflectionUsageInDependencies = DependencyUtilities.mapJarFilesToFullArtifactNames(reflectionUsageInDependencies, dependencies);
-    }
-
-    /**
      * This method converts the output from the CSV parser to a list of ReflectionUsageInProject objects
      *
      * @param csvOutput Output from CSV parser
-     * @return reflection usage list
      */
-    private void generateReflectionUsageInDependenciesList(List<List<String>> csvOutput) {
+    public void generateReflectionUsageInDependenciesList(List<List<String>> csvOutput) {
 
         for (List<String> csvEntry : csvOutput) {
             if (csvEntry.get(1).equals("reflection")) {
@@ -100,5 +82,9 @@ public class ReflectionUsageCollector {
 
     public List<ReflectionUsageInDependencies> getReflectionUsageInDependencies() {
         return reflectionUsageInDependencies;
+    }
+
+    public void setReflectionUsageInDependencies(List<ReflectionUsageInDependencies> reflectionUsageInDependencies) {
+        this.reflectionUsageInDependencies = reflectionUsageInDependencies;
     }
 }
