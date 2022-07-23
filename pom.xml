@@ -124,8 +124,8 @@
                 <configuration>
                     <programs>
                         <program>
-                            <mainClass>com.devonfw.application.Application</mainClass>
-                            <id>QMAid</id>
+                            <mainClass>com.devonfw.qmaid.Application</mainClass>
+                            <id>qmaid</id>
                         </program>
                     </programs>
                 </configuration>

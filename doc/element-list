@@ -1,5 +1,5 @@
-com.devonfw.application
-com.devonfw.application.collector
-com.devonfw.application.model
-com.devonfw.application.operator
-com.devonfw.application.util
+com.devonfw.qmaid
+com.devonfw.qmaid.collector
+com.devonfw.qmaid.model
+com.devonfw.qmaid.operator
+com.devonfw.qmaid.util

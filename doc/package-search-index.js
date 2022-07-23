@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"com.devonfw.application"},{"l":"com.devonfw.application.collector"},{"l":"com.devonfw.application.model"},{"l":"com.devonfw.application.operator"},{"l":"com.devonfw.application.util"}]
+packageSearchIndex = [{"l":"All Packages","url":"allpackages-index.html"},{"l":"com.devonfw.qmaid"},{"l":"com.devonfw.qmaid.collector"},{"l":"com.devonfw.qmaid.model"},{"l":"com.devonfw.qmaid.operator"},{"l":"com.devonfw.qmaid.util"}]
