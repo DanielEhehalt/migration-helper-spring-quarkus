@@ -40,7 +40,9 @@ public class ReflectionUsageCollector {
             if (csvEntry.get(1).equals("reflection")) {
                 String className = csvEntry.get(6);
                 String path = csvEntry.get(7).substring(inputProjectLocation.toString().length() + 1);
-                reflectionUsageInProject.add(new ReflectionUsageInProject(className, path));
+                if (reflectionUsageInProject.stream().noneMatch(reflectionUsage -> reflectionUsage.getClassName().equals(className) && reflectionUsage.getPath().equals(path))) {
+                    reflectionUsageInProject.add(new ReflectionUsageInProject(className, path));
+                }
             }
         }
     }

@@ -16,6 +16,7 @@
 		<rule id="reflection-detection-0000">
 			<when>
 				<javaclass references="java.lang.reflect.{*}">
+					<location>VARIABLE_DECLARATION</location>
 					<location>IMPORT</location>
 				</javaclass>
 			</when>

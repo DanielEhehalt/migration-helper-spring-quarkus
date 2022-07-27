@@ -117,6 +117,7 @@ public class Application implements Runnable {
         ReflectionUsageCollector reflectionUsageCollector = new ReflectionUsageCollector(inputProjectLocation, mtaOutput);
 
         if (!withoutDependencyAnalysis) {
+            LOG.info("Start scanning dependencies. " + dependencyTreeOperator.getAllArtifactsOfProject().size() + " dependencies found");
             dependencyTreeOperator.getAllArtifactsOfProject().forEach(dependency -> {
                 MtaExecutor.executeMtaForLibrary(dependency.getFile(), resultFolderLocation);
                 List<List<String>> mtaOutputDependency = CsvParser.parseCSV(resultFolderLocation);
