@@ -22,7 +22,7 @@ jobs:
 
 
     - name: Save test app dependencies
-      run: mkdir ${{ github.workspace }}/test-deploy-repo && cp -r ~/.m2/repository ${{ github.workspace }}/test-deploy-repo
+      run: mkdir ${{ github.workspace }}/test-deploy-repo && cp -r ~/.m2/repository/* ${{ github.workspace }}/test-deploy-repo
       
     - name: Build QMAid CLI with Maven
       run: mvn package appassembler:assemble
