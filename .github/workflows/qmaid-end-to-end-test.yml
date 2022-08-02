@@ -16,7 +16,7 @@ jobs:
         distribution: 'adopt'
         cache: maven
     - name: Build test app with Maven
-      run: mvn --batch-mode --update-snapshots verify --file tools/testmicroservice/pom.xml
+      run: mvn --batch-mode --update-snapshots verify --file tools/test-microservice/pom.xml
     
   build-qmaid:
     runs-on: ubuntu-latest
