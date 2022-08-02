@@ -19,7 +19,7 @@ jobs:
       run: mvn --batch-mode --update-snapshots verify --file tools/test-microservice/pom.xml
     
     - name: Save test app dependencies
-      run: mkdir test-deploy-repo && cp -r ~/.m2/repository test-deploy-repo
+      run: mkdir test-deploy-repo && cp -r ~/.m2/repository/* test-deploy-repo
       
 #    - uses: actions/upload-artifact@v3
 #      with:
