@@ -7,6 +7,8 @@ on:
 jobs:
   run-end-to-end-test:
     runs-on: ubuntu-latest
+    env:
+      M2_REPO: ${{ github.workspace }}/test-deploy-repo
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 11
