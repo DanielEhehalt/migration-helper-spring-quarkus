@@ -21,9 +21,14 @@ jobs:
       run: mvn --batch-mode --update-snapshots verify --file tools/test-microservice/pom.xml
 
 
+ #   - name: Save test app dependencies
+ #     run: mkdir ${{ github.workspace }}/test-deploy-repo && cp -r ~/.m2/repository/* ${{ github.workspace }}/test-deploy-repo
+  
+    
     - name: Save test app dependencies
-      run: mkdir ${{ github.workspace }}/test-deploy-repo && cp -r ~/.m2/repository/* ${{ github.workspace }}/test-deploy-repo
+      run: sudo ls /root/.m2/repository && sudo cp -r ~/.m2/repository/* /root/.m2/repository
       
+  
     - name: Build QMAid CLI with Maven
       run: mvn package appassembler:assemble
     
