@@ -18,8 +18,8 @@ jobs:
     - name: Build test app with Maven
       run: mvn --batch-mode --update-snapshots verify --file tools/test-microservice/pom.xml
     
-#    - name: Save test app dependencies
-#      run: mkdir test-deploy-repo && cp -r ~/.m2/repository test-deploy-repo
+    - name: Save test app dependencies
+      run: mkdir test-deploy-repo && cp -r ~/.m2/repository test-deploy-repo
       
 #    - uses: actions/upload-artifact@v3
 #      with:
@@ -37,7 +37,7 @@ jobs:
 #        path: target/appassembler
         
     - name: Execute QMAid
-      run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m /root/.m2/repository -wd
+      run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m test-deploy-repo -wd
       
     # - run: mkdir test-deploy-result && cp results/* test-deploy-result
     - uses: actions/upload-artifact@v3
