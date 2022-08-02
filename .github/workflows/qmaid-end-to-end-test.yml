@@ -21,7 +21,7 @@ jobs:
       
     - name: Build QMAid CLI with Maven
       run: mvn package appassembler:assemble
-    - run: mkdir test-deploy && cp target/appassembler/* test-deploy
+    - run: mkdir test-deploy && cp -r target/appassembler/* test-deploy
     - uses: actions/upload-artifact@v3
       with:
         name: qmaid
