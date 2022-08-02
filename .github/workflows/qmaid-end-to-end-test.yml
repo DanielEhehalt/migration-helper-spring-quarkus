@@ -18,26 +18,25 @@ jobs:
     - name: Build test app with Maven
       run: mvn --batch-mode --update-snapshots verify --file tools/test-microservice/pom.xml
       
-    - name: Cache local Maven repository
-      uses: actions/cache@v3
+    - run: mkdir test-deploy-repo && cp -r .m2/repository/* test-deploy-repo
+    - uses: actions/upload-artifact@v3
       with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('tools/test-microservice/pom.xml') }}
-        restore-keys: ${{ runner.os }}-test-app-maven-repo
+        name: repository
+        path: test-deploy-repo
       
     - name: Build QMAid CLI with Maven
       run: mvn package appassembler:assemble
-    - run: mkdir test-deploy && cp -r target/appassembler/* test-deploy
+    - run: mkdir test-deploy-app && cp -r target/appassembler/* test-deploy-app
     - uses: actions/upload-artifact@v3
       with:
         name: qmaid
-        path: test-deploy
+        path: test-deploy-app
         
     - name: Execute QMAid
-      run: sudo ./test-deploy/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m ~/.m2/repository -wd
+      run: sudo ./test-deploy-app/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m test-deploy-repo -wd
       
-    - run: mkdir test-result && cp results/* test-result
+    - run: mkdir test-deploy-result && cp results/* test-deploy-result
     - uses: actions/upload-artifact@v3
       with:
         name: result
-        path: test-result
+        path: test-deploy-result
