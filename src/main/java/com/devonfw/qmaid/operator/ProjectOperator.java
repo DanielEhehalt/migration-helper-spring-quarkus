@@ -70,6 +70,7 @@ public class ProjectOperator {
         URL[] urls = dependencyCollector.asUrls();
         for (URL url : urls) {
             String urlWithoutType = url.toString().substring(6);
+            System.out.println(urlWithoutType);
             if (urlWithoutType.endsWith(".jar")) {
                 try {
                     Model model = new MavenBridgeImpl().readEffectiveModelFromLocation(new File(urlWithoutType), false);
