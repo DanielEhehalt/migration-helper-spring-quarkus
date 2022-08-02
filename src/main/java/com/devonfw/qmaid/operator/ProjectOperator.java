@@ -9,6 +9,7 @@ import net.sf.mmm.code.impl.java.JavaContext;
 import net.sf.mmm.code.impl.java.source.maven.JavaSourceProviderUsingMaven;
 import net.sf.mmm.code.impl.java.source.maven.MavenDependencyCollector;
 import net.sf.mmm.code.java.maven.impl.MavenBridgeImpl;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.maven.model.Model;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
@@ -69,9 +70,12 @@ public class ProjectOperator {
         applicationStartupLibrariesOfProject = new ArrayList<>();
         URL[] urls = dependencyCollector.asUrls();
         for (URL url : urls) {
-            System.out.println(url);
-            String urlWithoutType = url.toString().substring(6);
-            System.out.println(urlWithoutType);
+            String urlWithoutType;
+            if(SystemUtils.IS_OS_WINDOWS) {
+                urlWithoutType = url.toString().substring(6);
+            } else {
+                urlWithoutType = url.toString().substring(5);
+            }
             if (urlWithoutType.endsWith(".jar")) {
                 try {
                     Model model = new MavenBridgeImpl().readEffectiveModelFromLocation(new File(urlWithoutType), false);
