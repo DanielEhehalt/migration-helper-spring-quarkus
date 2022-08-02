@@ -38,7 +38,7 @@ jobs:
 #    - run: ls ${{ github.workspace }}/test-deploy-repo
     
     - name: Execute QMAid
-      run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m ${{ github.workspace }}/test-deploy-repo -wd
+      run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m /root/.m2/repository -wd
       
     - uses: actions/upload-artifact@v3
       with:
