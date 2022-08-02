@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<ruleset xmlns="http://windup.jboss.org/schema/jboss-ruleset" id="configuration-annotations"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://windup.jboss.org/schema/jboss-ruleset http://windup.jboss.org/schema/jboss-ruleset/windup-jboss-ruleset.xsd">
+    <metadata>
+        <description>
+            This rule set contains an detection for the Spring configuration annotations @Value and @ConfigurationProperties.
+        </description>
+        <dependencies>
+            <addon id="org.jboss.windup.rules,windup-rules-javaee,3.0.0.Final"/>
+            <addon id="org.jboss.windup.rules,windup-rules-java,3.0.0.Final"/>
+            <addon id="org.jboss.windup.rules,windup-rules-xml,3.0.0.Final"/>
+        </dependencies>
+        <targetTechnology id="quarkus-extended"/>
+    </metadata>
+    <rules>
+        <rule id="configuration-annotations-0000">
+            <when>
+                <javaclass references="org.springframework.beans.factory.annotation.Value">
+                    <location>ANNOTATION</location>
+                </javaclass>
+            </when>
+            <perform>
+                <hint title="@Value annotation must be replayed by @ConfigProperty"
+                      category-id="mandatory" effort="1">
+                    <message>Configuration annotation @Value must be replayed by @ConfigProperty.
+                    </message>
+                </hint>
+            </perform>
+        </rule>
+        <rule id="configuration-annotations-0001">
+            <when>
+                <javaclass references="org.springframework.boot.context.properties.ConfigurationProperties">
+                    <location>ANNOTATION</location>
+                </javaclass>
+            </when>
+            <perform>
+                <hint title="Configuration annotation @ConfigurationProperties can be used in Quarkus with the Spring Boot Properties API.
+                        https://quarkus.io/guides/spring-boot-properties"
+                      category-id="mandatory" effort="1">
+                    <message>Configuration annotation @ConfigurationProperties can be used in Quarkus with the Spring Boot Properties API.
+                        https://quarkus.io/guides/spring-boot-properties
+                    </message>
+                </hint>
+            </perform>
+        </rule>
+    </rules>
+</ruleset>

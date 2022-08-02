@@ -35,24 +35,7 @@ public class DependencyBlacklistCollector {
     private void generateDependencyBlacklistFromMtaIssuesList(List<MtaIssue> mtaIssuesList, List<ProjectDependency> projectDependencies,
                                                                                        List<DependencyNode> dependencyTreeRootNodes) {
 
-//        List<ProjectDependency> rootDependencies = new ArrayList<>();
-//        dependencyTreeRootNodes.forEach(node -> {
-//            Optional<ProjectDependency> optionalProjectDependency = projectDependencies.stream()
-//                    .filter(dependency -> node.getArtifact().getGroupId().equals(dependency.getGroupId()) &&
-//                            node.getArtifact().getArtifactId().equals(dependency.getArtifactId()) &&
-//                            node.getArtifact().getVersion().equals(dependency.getVersion())).findAny();
-//            optionalProjectDependency.ifPresent(rootDependencies::add);
-//        });
-
         List<ProjectDependency> rootDependencies = projectDependencies;
-//        dependencyTreeRootNodes.forEach(node -> {
-//            Optional<ProjectDependency> optionalProjectDependency = projectDependencies.stream()
-//                    .filter(dependency -> node.getArtifact().getGroupId().equals(dependency.getGroupId()) &&
-//                            node.getArtifact().getArtifactId().equals(dependency.getArtifactId()) &&
-//                            node.getArtifact().getVersion().equals(dependency.getVersion())).findAny();
-//            optionalProjectDependency.ifPresent(rootDependencies::add);
-//        });
-
         dependencyBlacklist = new ArrayList<>();
 
         for (MtaIssue mtaIssue : mtaIssuesList) {
@@ -78,7 +61,6 @@ public class DependencyBlacklistCollector {
 
     private boolean enhanceBlacklistIfPossible(List<ProjectDependency> dependencyBlacklist, MtaIssue mtaIssue, boolean mtaIssueIsGeneralIssue,
                                                       Optional<ProjectDependency> optionalProjectDependency) {
-
 
         if (optionalProjectDependency.isPresent()) {
             ProjectDependency projectDependency = optionalProjectDependency.get();
