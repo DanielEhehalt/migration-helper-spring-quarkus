@@ -1,4 +1,4 @@
-name: Java CI
+name: QMAid end-to-end test
 
 on:
   push:
