@@ -37,7 +37,7 @@ jobs:
 #        path: target/appassembler
         
     - name: Execute QMAid
-      run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m root/.m2/repository -wd
+      run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m /root/.m2/repository -wd
       
     # - run: mkdir test-deploy-result && cp results/* test-deploy-result
     - uses: actions/upload-artifact@v3
