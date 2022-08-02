@@ -14,10 +14,16 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
-        cache: maven
         
-    - name: Build test app with Maven
-      run: mvn --batch-mode --update-snapshots verify --file tools/test-microservice/pom.xml
+#    - name: Build test app with Maven
+#      run: mvn --batch-mode --update-snapshots verify --file tools/test-microservice/pom.xml
+      
+    - name: Cache local Maven repository
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2/repository
+        key: ${{ runner.os }}-maven-${{ hashFiles('tools/test-microservice/pom.xml') }}
+        restore-keys: ${{ runner.os }}-test-app-maven-repo
       
     - name: Build QMAid CLI with Maven
       run: mvn package appassembler:assemble
@@ -28,7 +34,7 @@ jobs:
         path: test-deploy
         
     - name: Execute QMAid
-      run: sudo ./test-deploy/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m ~/.m2/repository -wd
+      run: sudo ./test-deploy/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m ${{ runner.os }}-test-app-maven-repo -wd
       
     - run: mkdir test-result && cp results/* test-result
     - uses: actions/upload-artifact@v3
