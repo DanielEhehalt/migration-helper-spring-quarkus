@@ -15,15 +15,7 @@ jobs:
         java-version: '11'
         distribution: 'adopt'
     
-    - name: Cache local Maven repository
-      id: cache-dependencies
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2/repository
-        key: maven-repo-location
-    
     - name: Build test app with Maven
-      if: steps.cache-dependencies.outputs.cache-hit != 'true'
       run: mvn --batch-mode --update-snapshots verify --file tools/test-microservice/pom.xml
 
 
