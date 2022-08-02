@@ -28,6 +28,8 @@ jobs:
       run: mvn package appassembler:assemble
     
     - run: echo "$M2_REPO"
+    - run: ls ~/.m2/repository
+    - run: ls ${{ github.workspace }}/test-deploy-repo
     
     - name: Execute QMAid
       run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m ${{ github.workspace }}/test-deploy-repo -wd
