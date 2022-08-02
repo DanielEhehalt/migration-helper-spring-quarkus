@@ -26,9 +26,12 @@ jobs:
       with:
         name: qmaid
         path: test-deploy
+    
+    - name: Make QMAid executable
+      run: chmod +x ./test-deploy/bin/qmaid
         
     - name: Execute QMAid
-      run: sudo ./test-deploy/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m $HOME/.m2/repository -wd
+      run: ./test-deploy/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m ~/.m2/repository -wd
       
     - run: mkdir test-result && cp results/* test-result
     - uses: actions/upload-artifact@v3
