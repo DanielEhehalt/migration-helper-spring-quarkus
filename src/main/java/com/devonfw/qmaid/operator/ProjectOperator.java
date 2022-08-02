@@ -69,6 +69,7 @@ public class ProjectOperator {
         applicationStartupLibrariesOfProject = new ArrayList<>();
         URL[] urls = dependencyCollector.asUrls();
         for (URL url : urls) {
+            System.out.println(url);
             String urlWithoutType = url.toString().substring(6);
             System.out.println(urlWithoutType);
             if (urlWithoutType.endsWith(".jar")) {
