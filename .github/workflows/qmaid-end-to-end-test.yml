@@ -17,24 +17,27 @@ jobs:
         
     - name: Build test app with Maven
       run: mvn --batch-mode --update-snapshots verify --file tools/test-microservice/pom.xml
+    
+#    - name: Save test app dependencies
+#      run: mkdir test-deploy-repo && cp -r ~/.m2/repository test-deploy-repo
       
-    - uses: actions/upload-artifact@v3
-      with:
-        name: test-deploy-repo
-        path: ~/.m2/repository
+#    - uses: actions/upload-artifact@v3
+#      with:
+#        name: test-deploy-repo
+#        path: ~/.m2/repository
       
     - name: Build QMAid CLI with Maven
       run: mvn package appassembler:assemble
       
-    - name: Save qmaid
-      run: mkdir test-deploy-app && cp -r target/appassembler/* test-deploy-app
+#    - name: Save qmaid
+#      run: mkdir test-deploy-app && cp -r target/appassembler/* test-deploy-app
 #    - uses: actions/upload-artifact@v3
 #      with:
 #        name: test-deploy-app
 #        path: target/appassembler
         
     - name: Execute QMAid
-      run: sudo ./test-deploy-app/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m test-deploy-repo -wd
+      run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m ~/.m2/repository -wd
       
     # - run: mkdir test-deploy-result && cp results/* test-deploy-result
     - uses: actions/upload-artifact@v3
