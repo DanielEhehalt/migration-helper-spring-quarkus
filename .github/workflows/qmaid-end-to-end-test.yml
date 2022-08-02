@@ -7,6 +7,8 @@ on:
 jobs:
   run-end-to-end-test:
     runs-on: ubuntu-latest
+    env:
+      M2_REPO: ${{ github.workspace }}/test-deploy-repo
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 11
@@ -14,33 +16,22 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
-        cache: maven
+        
     - name: Build test app with Maven
       run: mvn --batch-mode --update-snapshots verify --file tools/test-microservice/pom.xml
 
-
-#    - name: Save test app dependencies
-#      run: mkdir test-deploy-repo && cp -r ~/.m2/repository test-deploy-repo
-      
-#    - uses: actions/upload-artifact@v3
-#      with:
-#        name: test-deploy-repo
-#        path: ~/.m2/repository
-      
-    - name: Build QMAid CLI with Maven
+    - name: Save test app dependencies
+      run: sudo mkdir -p /root/.m2/repository && sudo cp -r ~/.m2/repository/* /root/.m2/repository      
+  
+    - name: Build QMAid CLI
       run: mvn package appassembler:assemble
-      
-#    - name: Save qmaid
-#      run: mkdir test-deploy-app && cp -r target/appassembler/* test-deploy-app
-#    - uses: actions/upload-artifact@v3
-#      with:
-#        name: test-deploy-app
-#        path: target/appassembler
-        
+    
+    - run: chmod +x ${{ github.workspace }}/tools/mta-cli-5.2.1/bin/mta-cli.bat
+    - run: chmod +x ${{ github.workspace }}/tools/mta-cli-5.2.1/bin/mta-cli
+    
     - name: Execute QMAid
-      run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m ~/.m2/repository -wd
+      run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m /root/.m2/repository -wd
       
-    # - run: mkdir test-deploy-result && cp results/* test-deploy-result
     - uses: actions/upload-artifact@v3
       with:
         name: test-deploy-result
