@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-test-app:
+  run-end-to-end-test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -28,7 +28,7 @@ jobs:
         path: test-deploy
         
     - name: Execute QMAid
-      run: ./test-deploy/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m $HOME/.m2/repository -wd
+      run: sudo ./test-deploy/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m $HOME/.m2/repository -wd
       
     - run: mkdir test-result && cp results/* test-result
     - uses: actions/upload-artifact@v3
