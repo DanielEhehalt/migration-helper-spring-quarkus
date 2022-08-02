@@ -22,7 +22,7 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: test-deploy-repo
-        path: .m2/repository
+        path: ~/.m2/repository
       
     - name: Build QMAid CLI with Maven
       run: mvn package appassembler:assemble
