@@ -15,6 +15,10 @@ jobs:
         java-version: '11'
         distribution: 'adopt'
         cache: maven
+              
+    - name: Build QMAid CLI with Maven
+      run: mvn package appassembler:assemble
+        
     - name: Build test app with Maven
       run: mvn --batch-mode --update-snapshots verify --file tools/test-microservice/pom.xml
 
@@ -26,9 +30,7 @@ jobs:
 #      with:
 #        name: test-deploy-repo
 #        path: ~/.m2/repository
-      
-    - name: Build QMAid CLI with Maven
-      run: mvn package appassembler:assemble
+
       
 #    - name: Save qmaid
 #      run: mkdir test-deploy-app && cp -r target/appassembler/* test-deploy-app
