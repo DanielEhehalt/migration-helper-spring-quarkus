@@ -81,12 +81,7 @@ public class Application implements Runnable {
         //Execute analysis
         if (!inputProject.equals("") || !mavenRepo.equals("") || !app.equals("")) {
             File inputProjectLocation = new File(this.inputProject);
-            File mavenRepoLocation;
-            if (mavenRepo.contains("~")) {
-                mavenRepoLocation = new File(System.getProperty("user.home") + mavenRepo.substring(1));
-            } else {
-                mavenRepoLocation = new File(this.mavenRepo);
-            }
+            File mavenRepoLocation = new File(this.mavenRepo);
             File applicationEntryPointLocation = new File(this.app);
             File projectPomLocation = new File(this.inputProject + File.separator + "pom.xml");
             File resultFolderLocation = new File(createDirectoryForResults());
