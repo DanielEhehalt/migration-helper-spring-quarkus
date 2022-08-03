@@ -63,8 +63,8 @@ public class ProjectOperator {
             context.getClassLoader().loadClass(fqnOfClass);
         } catch (ClassNotFoundException e) {
             AnalysisFailureCollector.addAnalysisFailure(
-                    new AnalysisFailureEntry(fqnOfClass, "Could not load class. ClassNotFoundException was thrown."));
-            LOG.debug("Could not find class", e);
+                    new AnalysisFailureEntry(fqnOfClass, "Could not load class. ClassNotFoundException was thrown. Please build the project with mvn package"));
+            LOG.debug("Could not find class. Please build the project with mvn package", e);
         }
 
         applicationStartupLibrariesOfProject = new ArrayList<>();
@@ -72,8 +72,10 @@ public class ProjectOperator {
         for (URL url : urls) {
             String urlWithoutType;
             if(SystemUtils.IS_OS_WINDOWS) {
+                // cutting Windows file urls: file://
                 urlWithoutType = url.toString().substring(6);
             } else {
+                // cutting Linux file urls: file:/
                 urlWithoutType = url.toString().substring(5);
             }
             if (urlWithoutType.endsWith(".jar")) {
