@@ -46,4 +46,4 @@ jobs:
     - uses: nick-fields/assert-action@v1
       with:
         expected: true
-        actual: ${{ steps.diff-action.outputs.passed }}
+        actual: ${{ steps.run-end-to-end-test.outputs.passed }}
