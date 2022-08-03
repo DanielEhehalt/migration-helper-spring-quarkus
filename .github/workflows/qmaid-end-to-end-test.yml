@@ -26,11 +26,10 @@ jobs:
     - name: Build QMAid CLI
       run: mvn package appassembler:assemble
     
-    - run: chmod +x ${{ github.workspace }}/tools/mta-cli-5.2.1/bin/mta-cli.bat
-    - run: chmod +x ${{ github.workspace }}/tools/mta-cli-5.2.1/bin/mta-cli
+    - run: chmod +x ${{ github.workspace }}/tools/mta-cli-5.2.1/bin/mta-cli.bat && chmod +x ${{ github.workspace }}/tools/mta-cli-5.2.1/bin/mta-cli
     
     - name: Execute QMAid
-      run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m /root/.m2/repository -wd
+      run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m /root/.m2/repository -wd -v
       
     - uses: actions/upload-artifact@v3
       with:
