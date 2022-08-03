@@ -130,7 +130,7 @@ public class Application implements Runnable {
         }
 
         DependencyBlacklistCollector dependencyBlacklistCollector = new DependencyBlacklistCollector(mtaIssuesCollector.getMtaIssuesList(),
-                dependencyTreeOperator.getProjectDependencies(), dependencyTreeOperator.getDependencyTreeRootNodes());
+                dependencyTreeOperator.getProjectDependencies());
 
         projectOperator.occurrenceMeasurement(new File(applicationEntryPointLocation.getParent()),
                 dependencyBlacklistCollector.getDependencyBlacklist(), dependencyTreeOperator);

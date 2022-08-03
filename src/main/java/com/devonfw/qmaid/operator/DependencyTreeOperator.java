@@ -55,6 +55,10 @@ public class DependencyTreeOperator {
         generateDependencyTree(projectPomLocation, mavenRepoLocation, applicationStartupLibrariesOfProject);
         generateArtifactsList(mavenRepoLocation);
         createProjectDependencyObjectsFromArtifacts(allArtifactsOfProject);
+        allArtifactsOfProject.forEach(artifact -> System.out.println(artifact.getArtifactId() + " " + artifact.getFile()));
+        projectDependencies.forEach(projectDependency -> {
+            System.out.println(projectDependency.getArtifactId() + projectDependency.getPackages().size() + projectDependency.getAllPossiblePackagesIncludingDependencies().size());
+        });
     }
 
     private static final Logger LOG = LoggerFactory.getLogger(DependencyTreeOperator.class);

@@ -19,30 +19,26 @@ public class DependencyBlacklistCollector {
 
     List<ProjectDependency> dependencyBlacklist;
 
-    public DependencyBlacklistCollector(List<MtaIssue> mtaIssuesList, List<ProjectDependency> projectDependencies,
-                                        List<DependencyNode> dependencyTreeRootNodes) {
+    public DependencyBlacklistCollector(List<MtaIssue> mtaIssuesList, List<ProjectDependency> projectDependencies) {
 
-        generateDependencyBlacklistFromMtaIssuesList(mtaIssuesList, projectDependencies, dependencyTreeRootNodes);
+        generateDependencyBlacklistFromMtaIssuesList(mtaIssuesList, projectDependencies);
     }
 
     /**
      * This method generates the dependency blacklist from the found MTA issues
      *
-     * @param mtaIssuesList           Found issues of MTA
-     * @param projectDependencies  List with all project dependencies
-     * @param dependencyTreeRootNodes Dependency tree
+     * @param mtaIssuesList       Found issues of MTA
+     * @param projectDependencies List with all project dependencies
      */
-    private void generateDependencyBlacklistFromMtaIssuesList(List<MtaIssue> mtaIssuesList, List<ProjectDependency> projectDependencies,
-                                                                                       List<DependencyNode> dependencyTreeRootNodes) {
+    private void generateDependencyBlacklistFromMtaIssuesList(List<MtaIssue> mtaIssuesList, List<ProjectDependency> projectDependencies) {
 
-        List<ProjectDependency> rootDependencies = projectDependencies;
         dependencyBlacklist = new ArrayList<>();
 
         for (MtaIssue mtaIssue : mtaIssuesList) {
             boolean mtaIssueIsGeneralIssue = true;
 
             for (MtaIssue.MavenIdentifier mavenIdentifier : mtaIssue.getMavenIdentifiers()) {
-                Optional<ProjectDependency> optionalProjectDependency = rootDependencies.stream()
+                Optional<ProjectDependency> optionalProjectDependency = projectDependencies.stream()
                         .filter(projectDependency -> projectDependency.getGroupId().equals(mavenIdentifier.getGroupId()) &&
                                 projectDependency.getArtifactId().equals(mavenIdentifier.getArtifactId())).findFirst();
                 mtaIssueIsGeneralIssue = enhanceBlacklistIfPossible(dependencyBlacklist, mtaIssue, mtaIssueIsGeneralIssue, optionalProjectDependency);
@@ -60,7 +56,7 @@ public class DependencyBlacklistCollector {
     }
 
     private boolean enhanceBlacklistIfPossible(List<ProjectDependency> dependencyBlacklist, MtaIssue mtaIssue, boolean mtaIssueIsGeneralIssue,
-                                                      Optional<ProjectDependency> optionalProjectDependency) {
+                                               Optional<ProjectDependency> optionalProjectDependency) {
 
         if (optionalProjectDependency.isPresent()) {
             ProjectDependency projectDependency = optionalProjectDependency.get();
