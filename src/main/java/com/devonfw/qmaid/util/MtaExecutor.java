@@ -2,6 +2,7 @@ package com.devonfw.qmaid.util;
 
 import com.devonfw.qmaid.collector.AnalysisFailureCollector;
 import com.devonfw.qmaid.model.AnalysisFailureEntry;
+import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,17 +30,31 @@ public class MtaExecutor {
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
 
-        builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",
-                "--input", inputProjectLocation.toString(),
-                "--output", resultFolderLocation.toString(),
-                "--target", "quarkus",
-                "--target", "reflection",
-                "--exportCSV",
-                "--batchMode",
-                "--skipReports",
-                "--overwrite",
-                "--sourceMode",
-                "--userRulesDirectory", "tools" + File.separator + "custom-mta-rules");
+        if(SystemUtils.IS_OS_WINDOWS) {
+            builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",
+                    "--input", inputProjectLocation.toString(),
+                    "--output", resultFolderLocation.toString(),
+                    "--target", "quarkus",
+                    "--target", "reflection",
+                    "--exportCSV",
+                    "--batchMode",
+                    "--skipReports",
+                    "--overwrite",
+                    "--sourceMode",
+                    "--userRulesDirectory", "tools" + File.separator + "custom-mta-rules");
+        } else {
+            builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli",
+                    "--input", inputProjectLocation.toString(),
+                    "--output", resultFolderLocation.toString(),
+                    "--target", "quarkus",
+                    "--target", "reflection",
+                    "--exportCSV",
+                    "--batchMode",
+                    "--skipReports",
+                    "--overwrite",
+                    "--sourceMode",
+                    "--userRulesDirectory", "tools" + File.separator + "custom-mta-rules");
+        }
 
         try {
             //Start script
@@ -71,16 +86,29 @@ public class MtaExecutor {
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
 
-        builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",
-                "--input", libraryLocation.toString(),
-                "--output", resultFolderLocation.toString(),
-                "--target", "quarkus",
-                "--target", "reflection",
-                "--exportCSV",
-                "--batchMode",
-                "--skipReports",
-                "--overwrite",
-                "--userRulesDirectory", "tools" + File.separator + "custom-mta-rules");
+        if(SystemUtils.IS_OS_WINDOWS) {
+            builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",
+                    "--input", libraryLocation.toString(),
+                    "--output", resultFolderLocation.toString(),
+                    "--target", "quarkus",
+                    "--target", "reflection",
+                    "--exportCSV",
+                    "--batchMode",
+                    "--skipReports",
+                    "--overwrite",
+                    "--userRulesDirectory", "tools" + File.separator + "custom-mta-rules");
+        } else {
+            builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli",
+                    "--input", libraryLocation.toString(),
+                    "--output", resultFolderLocation.toString(),
+                    "--target", "quarkus",
+                    "--target", "reflection",
+                    "--exportCSV",
+                    "--batchMode",
+                    "--skipReports",
+                    "--overwrite",
+                    "--userRulesDirectory", "tools" + File.separator + "custom-mta-rules");
+        }
 
         try {
             //Start script
