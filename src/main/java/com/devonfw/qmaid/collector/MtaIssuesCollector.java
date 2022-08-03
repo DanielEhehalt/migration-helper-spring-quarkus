@@ -87,7 +87,7 @@ public class MtaIssuesCollector {
                 try {
                     String contentType = Files.probeContentType(Path.of(String.valueOf(rule)));
                     System.out.println(contentType);
-                    if (contentType != null && contentType.equals("text/xml")) {
+                    if (contentType != null && (contentType.equals("text/xml") || contentType.equals("application/xml"))) {
                         System.out.println("Sax parser started: " + rule.getName());
                         SAXParserFactory saxParserFactory = SAXParserFactory.newDefaultInstance();
                         SAXParser saxParser = saxParserFactory.newSAXParser();
