@@ -35,3 +35,15 @@ jobs:
       with:
         name: test-deploy-result
         path: results
+        
+    - uses: LouisBrunner/diff-action@v0.1.0
+      with:
+        old: tools/test-microservice/report.html
+        new: test-deploy-result/*/report.html
+        mode: addition
+        tolerance: better
+        
+    - uses: nick-fields/assert-action@v1
+      with:
+        expected: true
+        actual: ${{ steps.diff-action.outputs.passed }}
