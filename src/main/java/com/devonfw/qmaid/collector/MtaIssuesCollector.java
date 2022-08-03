@@ -80,10 +80,13 @@ public class MtaIssuesCollector {
         File[] directories = locationMTARules.listFiles(File::isDirectory);
 
         for (File directory : directories) {
+            System.out.println(directory.toString());
             File[] rules = new File(String.valueOf(directory)).listFiles();
             for (File rule : rules) {
+                System.out.println(rule.toString());
                 try {
                     String contentType = Files.probeContentType(Path.of(String.valueOf(rule)));
+                    System.out.println(contentType);
                     if (contentType != null && contentType.equals("text/xml")) {
                         System.out.println("Sax parser started: " + rule.getName());
                         SAXParserFactory saxParserFactory = SAXParserFactory.newDefaultInstance();
