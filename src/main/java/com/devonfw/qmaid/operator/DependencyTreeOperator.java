@@ -57,7 +57,7 @@ public class DependencyTreeOperator {
         createProjectDependencyObjectsFromArtifacts(allArtifactsOfProject);
         allArtifactsOfProject.forEach(artifact -> System.out.println(artifact.getArtifactId() + " " + artifact.getFile()));
         projectDependencies.forEach(projectDependency -> {
-            System.out.println(projectDependency.getArtifactId() + projectDependency.getPackages().size() + projectDependency.getAllPossiblePackagesIncludingDependencies().size());
+            System.out.println(projectDependency.getArtifactId() + " " + projectDependency.getPackages().size());
         });
     }
 
@@ -65,8 +65,6 @@ public class DependencyTreeOperator {
 
     /**
      * This method generates the dependency tree of a project
-     *
-     * @return List with one DependencyNode per dependency in the project. Enriched with all children which have the scope compile
      */
     private void generateDependencyTree(File projectPomLocation, File mavenRepoLocation, List<Artifact> applicationStartupLibrariesOfProject) {
 

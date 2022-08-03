@@ -38,6 +38,7 @@ public class DependencyBlacklistCollector {
             boolean mtaIssueIsGeneralIssue = true;
 
             for (MtaIssue.MavenIdentifier mavenIdentifier : mtaIssue.getMavenIdentifiers()) {
+                System.out.println(mavenIdentifier.getArtifactId());
                 Optional<ProjectDependency> optionalProjectDependency = projectDependencies.stream()
                         .filter(projectDependency -> projectDependency.getGroupId().equals(mavenIdentifier.getGroupId()) &&
                                 projectDependency.getArtifactId().equals(mavenIdentifier.getArtifactId())).findFirst();

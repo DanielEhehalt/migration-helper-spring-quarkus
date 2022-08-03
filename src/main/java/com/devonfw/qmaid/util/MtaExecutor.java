@@ -67,7 +67,6 @@ public class MtaExecutor {
 
             //Waiting for successful end of execution
             int exitCode = process.waitFor();
-            System.out.println(exitCode);
             assert exitCode == 0;
         } catch (IOException | InterruptedException e) {
             LOG.error("MTA execution failed.", e);
@@ -121,7 +120,6 @@ public class MtaExecutor {
 
             //Waiting for successful end of execution
             int exitCode = process.waitFor();
-            System.out.println(exitCode);
             assert exitCode == 0;
         } catch (IOException | InterruptedException e) {
             AnalysisFailureCollector.addAnalysisFailure(
