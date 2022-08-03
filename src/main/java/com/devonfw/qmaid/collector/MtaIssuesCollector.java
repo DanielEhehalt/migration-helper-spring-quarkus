@@ -59,13 +59,6 @@ public class MtaIssuesCollector {
 
         File locationOfCustomMtaRules = new File(System.getProperty("user.dir") + File.separator + "tools" + File.separator + "custom-mta-rules");
         mtaIssuesList = resolveGroupIdAndArtifactIdFromMtaRules(mtaIssuesList, locationOfCustomMtaRules);
-
-//        File locationOfBuiltInMtaRules = new File( "tools" + File.separator + "mta-cli-5.2.1" + File.separator + "rules" + File.separator + "migration-core" + File.separator + "quarkus");
-//        System.out.println(locationOfBuiltInMtaRules);
-//        mtaIssuesList = resolveGroupIdAndArtifactIdFromMtaRules(mtaIssuesList, locationOfBuiltInMtaRules);
-//
-//        File locationOfCustomMtaRules = new File( "tools" + File.separator + "custom-mta-rules");
-//        mtaIssuesList = resolveGroupIdAndArtifactIdFromMtaRules(mtaIssuesList, locationOfCustomMtaRules);
     }
 
     /**
@@ -80,15 +73,11 @@ public class MtaIssuesCollector {
         File[] directories = locationMTARules.listFiles(File::isDirectory);
 
         for (File directory : directories) {
-            System.out.println(directory.toString());
             File[] rules = new File(String.valueOf(directory)).listFiles();
             for (File rule : rules) {
-                System.out.println(rule.toString());
                 try {
                     String contentType = Files.probeContentType(Path.of(String.valueOf(rule)));
-                    System.out.println(contentType);
                     if (contentType != null && (contentType.equals("text/xml") || contentType.equals("application/xml"))) {
-                        System.out.println("Sax parser started: " + rule.getName());
                         SAXParserFactory saxParserFactory = SAXParserFactory.newDefaultInstance();
                         SAXParser saxParser = saxParserFactory.newSAXParser();
                         RuleXmlHandler ruleXmlHandler = new RuleXmlHandler(mtaIssuesList);
