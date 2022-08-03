@@ -54,6 +54,7 @@ public class MtaIssuesCollector {
         //Enhancing the found incompatibilities with the corresponding groupId and artifactId
         File locationOfBuiltInMtaRules = new File(System.getProperty("user.dir") +
                 File.separator + "tools" + File.separator + "mta-cli-5.2.1" + File.separator + "rules" + File.separator + "migration-core" + File.separator + "quarkus");
+        System.out.println(locationOfBuiltInMtaRules);
         mtaIssuesList = resolveGroupIdAndArtifactIdFromMtaRules(mtaIssuesList, locationOfBuiltInMtaRules);
 
         File locationOfCustomMtaRules = new File(System.getProperty("user.dir") + File.separator + "tools" + File.separator + "custom-mta-rules");
