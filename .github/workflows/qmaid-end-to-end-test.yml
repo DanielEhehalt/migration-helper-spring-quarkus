@@ -38,7 +38,7 @@ jobs:
         
     - uses: LouisBrunner/diff-action@v0.1.0
       with:
-        old: tools/test-microservice/report.html
+        old: tools/test-microservice/report_wd.html
         new: test-deploy-result/*/report.html
         mode: addition
         tolerance: better
