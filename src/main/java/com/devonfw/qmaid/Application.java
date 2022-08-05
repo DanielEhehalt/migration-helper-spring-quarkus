@@ -88,9 +88,8 @@ public class Application implements Runnable {
 
             checkIfFilesExist(inputProjectLocation, mavenRepoLocation, applicationEntryPointLocation, projectPomLocation);
 
-            LOG.info("Start the analysis");
-            LOG.info("Project location: " + inputProjectLocation);
             LOG.info("Result folder: " + resultFolderLocation);
+            LOG.info("Start the analysis for: " + inputProjectLocation);
 
             executeAnalysis(inputProjectLocation, mavenRepoLocation, applicationEntryPointLocation, projectPomLocation, resultFolderLocation);
 
