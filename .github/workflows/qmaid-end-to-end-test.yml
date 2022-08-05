@@ -36,8 +36,8 @@ jobs:
       id: result-folder-name
       with:
         script: |
-          const index = ${{ steps.execute-qmaid.outputs.* }}.indexOf("report.html")
-          const result = ${{ steps.execute-qmaid.outputs.* }}.substring(index-1, index-13)
+          const index = ${{ steps.execute-qmaid.outputs.* }}.indexOf("results")
+          const result = ${{ steps.execute-qmaid.outputs.* }}.substring(index+8, index+20)
           return result
           
     - run: echo ${{ steps.result-folder-name.outputs.result }}
