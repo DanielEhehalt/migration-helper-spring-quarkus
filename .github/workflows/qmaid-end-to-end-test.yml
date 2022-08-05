@@ -40,22 +40,15 @@ jobs:
         script: |
           const substring = "${{ steps.execute-qmaid.outputs.qmaid-output }}".substring("${{ steps.execute-qmaid.outputs.qmaid-output }}".length - 13, "${{ steps.execute-qmaid.outputs.qmaid-output }}".length)
           return parseInt(substring)
-          
-    - run: echo ${{ steps.result-folder-name.outputs.result }}
-          
-    - uses: actions/upload-artifact@v3
-      with:
-        name: test-deploy-result
-        path: results/${{ steps.result-folder-name.outputs.result }}/report.html
         
     - uses: LouisBrunner/diff-action@v0.1.0
       with:
-        old: tools/test-microservice/report_wd.html
+        old: tools/test-microservice/report.html
         new: results/${{ steps.result-folder-name.outputs.result }}/report.html
         mode: addition
         tolerance: mixed
         
-    - uses: nick-fields/assert-action@v1
+    - uses: actions/upload-artifact@v3
       with:
-        expected: true
-        actual: ${{ steps.run-end-to-end-test.outputs.passed }}
+        name: test-deploy-result
+        path: results/${{ steps.result-folder-name.outputs.result }}/report.html
