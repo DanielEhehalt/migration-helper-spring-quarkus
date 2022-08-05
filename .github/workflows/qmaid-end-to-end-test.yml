@@ -30,7 +30,9 @@ jobs:
     
     - name: Execute QMAid
       id: execute-qmaid
-      run: ::set-output name=qmaid-output::sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m /root/.m2/repository -wd
+      run: |
+        OUTPUT=$(sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m /root/.m2/repository -wd)
+        echo "::set-output name=qmaid-output::$OUTPUT"
       
     - uses: actions/github-script@v6.1.0
       id: result-folder-name
