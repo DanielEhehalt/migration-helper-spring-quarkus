@@ -29,12 +29,23 @@ jobs:
     - run: chmod +x ${{ github.workspace }}/tools/mta-cli-5.2.1/bin/mta-cli
     
     - name: Execute QMAid
+      id: execute-qmaid
       run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m /root/.m2/repository -wd
       
+    - uses: actions/github-script@6.1
+      id: result-folder-name
+      with:
+        script: |
+          const index = ${{ steps.execute-qmaid.outputs.* }}.indexOf("report.html")
+          const result = ${{ steps.execute-qmaid.outputs.* }}.substring(index-1, index-13)
+          return result
+          
+    - run: echo ${{ steps.result-folder-name.outputs.result }}
+          
     - uses: actions/upload-artifact@v3
       with:
         name: test-deploy-result
-        path: results/*/report.html
+        path: results/${{ steps.result-folder-name.outputs.result }}/report.html
         
     - uses: LouisBrunner/diff-action@v0.1.0
       with:
