@@ -38,7 +38,7 @@ jobs:
       id: result-folder-name
       with:
         script:
-          return "${{ steps.execute-qmaid.outputs.qmaid-output }}".substring("${{ steps.execute-qmaid.outputs.qmaid-output }}".length - 12, "${{ steps.execute-qmaid.outputs.qmaid-output }}".length)
+          return "${{ steps.execute-qmaid.outputs.qmaid-output }}".substring("${{ steps.execute-qmaid.outputs.qmaid-output }}".length - 13, "${{ steps.execute-qmaid.outputs.qmaid-output }}".length)
           
     - run: echo ${{ steps.result-folder-name.outputs.result }}
           
