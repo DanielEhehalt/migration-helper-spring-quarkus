@@ -53,7 +53,7 @@ jobs:
         old: tools/test-microservice/report_wd.html
         new: results/${{ steps.result-folder-name.outputs.result }}/report.html
         mode: addition
-        tolerance: same
+        tolerance: mixed
         
     - uses: nick-fields/assert-action@v1
       with:
