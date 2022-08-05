@@ -37,8 +37,9 @@ jobs:
     - uses: actions/github-script@v6.1.0
       id: result-folder-name
       with:
-        script:
-          return "${{ steps.execute-qmaid.outputs.qmaid-output }}".substring("${{ steps.execute-qmaid.outputs.qmaid-output }}".length - 13, "${{ steps.execute-qmaid.outputs.qmaid-output }}".length)
+        script: |
+          const substring = "${{ steps.execute-qmaid.outputs.qmaid-output }}".substring("${{ steps.execute-qmaid.outputs.qmaid-output }}".length - 13, "${{ steps.execute-qmaid.outputs.qmaid-output }}".length)
+          return parseInt(substring)
           
     - run: echo ${{ steps.result-folder-name.outputs.result }}
           
