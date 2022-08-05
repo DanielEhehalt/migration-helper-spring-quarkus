@@ -30,14 +30,14 @@ jobs:
     
     - name: Execute QMAid
       id: execute-qmaid
-      run: sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m /root/.m2/repository -wd
+      run: echo "::set-output name=qmaid-output::sudo ./target/appassembler/bin/qmaid -p tools/test-microservice -a tools/test-microservice/src/main/java/com/example/restservice/RestServiceApplication.java -m /root/.m2/repository -wd"
       
     - uses: actions/github-script@v6.1.0
       id: result-folder-name
       with:
         script: |
-          const index = ${{ steps.execute-qmaid.outputs.* }}.indexOf("results")
-          const result = ${{ steps.execute-qmaid.outputs.* }}.substring(index+8, index+20)
+          const index = ${{ steps.execute-qmaid.outputs.qmaid-output }}.indexOf("results")
+          const result = ${{ steps.execute-qmaid.outputs.qmaid-output }}.substring(index+8, index+20)
           return result
           
     - run: echo ${{ steps.result-folder-name.outputs.result }}
