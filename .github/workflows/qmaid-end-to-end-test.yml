@@ -37,10 +37,8 @@ jobs:
     - uses: actions/github-script@v6.1.0
       id: result-folder-name
       with:
-        script: |
-          const index = ${{ steps.execute-qmaid.outputs.qmaid-output }}.indexOf("results")
-          const result = ${{ steps.execute-qmaid.outputs.qmaid-output }}.substring(index+8, index+20)
-          return result
+        script:
+          return ${{ steps.execute-qmaid.outputs.qmaid-output }}.substring(${{ steps.execute-qmaid.outputs.qmaid-output }}.length - 12, ${{ steps.execute-qmaid.outputs.qmaid-output }}.length)
           
     - run: echo ${{ steps.result-folder-name.outputs.result }}
           
