@@ -20,10 +20,10 @@ For a better result the project to be analyzed must be built (mvn package). Othe
 The CLI options ```-p```, ```-a``` and ```-m``` are mandatory.
 
 **Windows:** \
-`target\appassembler\bin\mhsq.bat -p [projectLocation] -a [appEntryPoint] -m [mavenRepoLocation]`
+`target\appassembler\bin\qmaid.bat -p [projectLocation] -a [appEntryPointLocation] -m [mavenRepoLocation]`
 
 **Linux:** \
-`./target/appassembler/bin/mhsq -p [projectLocation] -a [appEntryPoint] -m [mavenRepoLocation]`
+`./target/appassembler/bin/qmaid -p [projectLocation] -a [appEntryPointLocation] -m [mavenRepoLocation]`
 
 ## Customization
 
