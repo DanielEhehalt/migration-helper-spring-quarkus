@@ -20,7 +20,7 @@ For a better result the project to be analyzed must be built (mvn package). Othe
 The CLI options ```-p```, ```-a``` and ```-m``` are mandatory.
 
 **Windows:** \
-`target\appassembler\bin\qmaid.bat -p [projectLocation] -a [appEntryPointLocation] -m [mavenRepoLocation]`
+`target\appassembler\bin\qmaid.bat -p [projectLocation] -a [appEntryPointFileLocation] -m [mavenRepoLocation]`
 
 **Linux:** \
 `./target/appassembler/bin/qmaid -p [projectLocation] -a [appEntryPointLocation] -m [mavenRepoLocation]`
@@ -37,7 +37,7 @@ https://access.redhat.com/documentation/en-us/red_hat_jboss_migration_toolkit/3.
 ## Options
 ```
 -p  --project               Maven project location
--a  --app                   Application entry point location (@SpringBootApplication)
+-a  --app                   Application entry point file location (@SpringBootApplication)
 -m  --mavenRepo             Maven repository location
 -wd --withoutDependencies   Without analysis of the reflection usage of the dependencies. This analysis can take a very long time
 -v  --verbose               Enable debug logging
