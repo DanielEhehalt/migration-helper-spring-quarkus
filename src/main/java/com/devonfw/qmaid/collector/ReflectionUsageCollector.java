@@ -63,8 +63,10 @@ public class ReflectionUsageCollector {
                         .filter(reflectionUsageInDependency -> reflectionUsageInDependency.getJarFile().equals(jarFile))
                         .findAny();
                 if (optionalReflectionUsageInDependency.isPresent()) {
-                    reflectionUsageInDependencies.get(reflectionUsageInDependencies.indexOf(optionalReflectionUsageInDependency.get())).getClasses()
-                            .add(className);
+                    ReflectionUsageInDependencies reflectionUsage = reflectionUsageInDependencies.get(reflectionUsageInDependencies.indexOf(optionalReflectionUsageInDependency.get()));
+                    if (!reflectionUsage.getClasses().contains(className)) {
+                        reflectionUsage.getClasses().add(className);
+                    }
                 } else {
                     ArrayList<String> classes = new ArrayList<>();
                     classes.add(className);
