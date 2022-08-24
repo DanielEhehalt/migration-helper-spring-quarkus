@@ -34,13 +34,13 @@ public class Application implements Runnable {
     @CommandLine.Option(names = {"-h", "--help"}, defaultValue = "false", description = "Help")
     private Boolean help;
 
-    @CommandLine.Option(names = {"-p", "--project"}, description = "Project location")
+    @CommandLine.Option(names = {"-p", "--project"}, defaultValue = "", description = "Project location")
     private String inputProject;
 
-    @CommandLine.Option(names = {"-a", "--app"}, description = "Application entry point location (@SpringBootApplication)")
+    @CommandLine.Option(names = {"-a", "--app"}, defaultValue = "", description = "Application entry point location (@SpringBootApplication)")
     private String app;
 
-    @CommandLine.Option(names = {"-m", "--mavenRepo"}, description = "Maven repository location")
+    @CommandLine.Option(names = {"-m", "--mavenRepo"}, defaultValue = "", description = "Maven repository location")
     private String mavenRepo;
 
     @CommandLine.Option(names = {"-wd", "--withoutDependencies"}, defaultValue = "false",
@@ -79,7 +79,7 @@ public class Application implements Runnable {
         }
 
         //Execute analysis
-        if (!inputProject.equals("") || !mavenRepo.equals("") || !app.equals("")) {
+        if (!inputProject.equals("") && !mavenRepo.equals("") && !app.equals("")) {
             File inputProjectLocation = new File(this.inputProject);
             File mavenRepoLocation = new File(this.mavenRepo);
             File applicationEntryPointLocation = new File(this.app);
