@@ -2,7 +2,6 @@ package com.devonfw.qmaid.collector;
 
 import com.devonfw.qmaid.model.MtaIssue;
 import com.devonfw.qmaid.model.ProjectDependency;
-import org.eclipse.aether.graph.DependencyNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

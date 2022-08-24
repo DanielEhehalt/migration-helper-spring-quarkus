@@ -217,7 +217,7 @@ public class ReportGenerator {
         return "The occurrence measurement indicates the strength of the bonding between the dependency and the code. " +
                 "For this purpose, all import statements of all Java classes of the project are analyzed. " +
                 "For the assignment all possible packages and classes of a dependency are collected. " +
-                "If a dependency has a transitive dependency with a name that contains \"starter\", the packages and classes contained in this dependency are also assigned." +
+                "If a class or a package of a dependency is found in an import statement in a class of the user code, the counter is incremented once per class." +
                 "The number of all scanned Java classes will be displayed for a better estimation";
     }
 

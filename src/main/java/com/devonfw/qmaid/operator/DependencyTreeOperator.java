@@ -302,7 +302,7 @@ public class DependencyTreeOperator {
     }
 
     /**
-     * This method enhances the project dependencies with all packages and classes, including the packages and classes of their dependencies
+     * This method enhances the project dependencies with all packages and classes
      *
      * @param dependencyBlacklist     List of blacklisted dependencies
      */
@@ -317,7 +317,7 @@ public class DependencyTreeOperator {
 
             if (dependencyNode != null) {
                 collectPackagesAndClassesFromChildren(dependencyNode, allPossiblePackagesOfBlacklistEntry,
-                        allPossibleClassesOfBlacklistEntry, projectDependencies, 1);
+                        allPossibleClassesOfBlacklistEntry, projectDependencies);
             }
             blacklistEntry.setAllPossiblePackagesIncludingDependencies(allPossiblePackagesOfBlacklistEntry);
             blacklistEntry.setAllPossibleClassesIncludingDependencies(allPossibleClassesOfBlacklistEntry);
@@ -331,12 +331,10 @@ public class DependencyTreeOperator {
      * @param allPossiblePackagesOfBlacklistEntry List to save the found packages
      * @param allPossibleClassesOfBlacklistEntry  List to save the found classes
      * @param projectDependencies                 List with all project dependencies
-     * @param searchDepth                         Search depth
      */
     private void collectPackagesAndClassesFromChildren(DependencyNode node, List<String> allPossiblePackagesOfBlacklistEntry,
                                                              List<String> allPossibleClassesOfBlacklistEntry,
-                                                             List<ProjectDependency> projectDependencies,
-                                                             Integer searchDepth) {
+                                                             List<ProjectDependency> projectDependencies) {
 
         List<DependencyNode> childrenFromNode = node.getChildren();
         for (DependencyNode child : childrenFromNode) {
@@ -349,10 +347,6 @@ public class DependencyTreeOperator {
             if (projectDependency.isPresent()) {
                 allPossiblePackagesOfBlacklistEntry.addAll(projectDependency.get().getPackages());
                 allPossibleClassesOfBlacklistEntry.addAll(projectDependency.get().getClasses());
-            }
-            if (searchDepth > 0 || child.getArtifact().getArtifactId().contains("starter")) {
-                collectPackagesAndClassesFromChildren(child, allPossiblePackagesOfBlacklistEntry, allPossibleClassesOfBlacklistEntry,
-                        projectDependencies, searchDepth - 1);
             }
         }
     }
