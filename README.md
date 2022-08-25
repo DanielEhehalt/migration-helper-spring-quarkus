@@ -6,7 +6,7 @@ This CLI tool analyzes Spring Boot microservices for their migratability to Quar
 
 - Java 11
 - Maven
-- For the analysis of applications with a Java version greater than 11, QMAid must be executed with at least this version. If QMAid is executed with a Java version greater than 11, an installed Java 11 version must be provided via the CLI option -j, because the Migration Toolkit for Applications can only be executed within a Java 11 environment
+- For the analysis of applications with a Java version greater than 11, QMAid must be executed with at least this version. If QMAid is executed with a Java version greater than 11, an installed Java 11 version must be provided via the CLI option -j, because the Migration Toolkit for Applications can only be executed within a Java 11 environment.
 
 ## Build
 
