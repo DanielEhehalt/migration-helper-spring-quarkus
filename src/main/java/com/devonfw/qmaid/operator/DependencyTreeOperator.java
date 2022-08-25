@@ -124,7 +124,8 @@ public class DependencyTreeOperator {
      * @return DependencyNode enriched with all children which have compile or runtime as scope
      * @throws DependencyCollectionException If maven dependency is not available
      */
-    private DependencyNode buildBranchesOfRootNode(Artifact artifact, File mavenRepoLocation) throws DependencyCollectionException, ArtifactResolutionException {
+    private DependencyNode buildBranchesOfRootNode(Artifact artifact, File mavenRepoLocation)
+            throws DependencyCollectionException, ArtifactResolutionException {
 
         RepositorySystem system = newRepositorySystem();
         DefaultRepositorySystemSession session = newRepositorySystemSession(system, mavenRepoLocation);
@@ -174,7 +175,7 @@ public class DependencyTreeOperator {
      * @return repository system session
      */
     private DefaultRepositorySystemSession newRepositorySystemSession(RepositorySystem system,
-                                                                            File mavenRepoLocation) {
+                                                                      File mavenRepoLocation) {
 
         DefaultRepositorySystemSession session = MavenRepositorySystemUtils.newSession();
 
@@ -217,7 +218,7 @@ public class DependencyTreeOperator {
      * @param allArtifactsOfProject List of all artifacts
      */
     private List<Artifact> findArtifactsOfNode(DependencyNode node, File mavenRepoLocation,
-                                                      List<Artifact> allArtifactsOfProject) {
+                                               List<Artifact> allArtifactsOfProject) {
 
         List<DependencyNode> childrenFromNode = node.getChildren();
         for (DependencyNode child : childrenFromNode) {
@@ -304,9 +305,9 @@ public class DependencyTreeOperator {
     /**
      * This method enhances the project dependencies with all packages and classes
      *
-     * @param dependencyBlacklist     List of blacklisted dependencies
+     * @param dependencyBlacklist List of blacklisted dependencies
      */
-    public void enhanceProjectDependencyWithPackagesAndClasses(List<ProjectDependency> dependencyBlacklist) {
+    public void enhanceProjectDependencyWithPackagesAndClassesFromTransitiveDependencies(List<ProjectDependency> dependencyBlacklist) {
 
         for (ProjectDependency blacklistEntry : dependencyBlacklist) {
 
@@ -317,7 +318,7 @@ public class DependencyTreeOperator {
 
             if (dependencyNode != null) {
                 collectPackagesAndClassesFromChildren(dependencyNode, allPossiblePackagesOfBlacklistEntry,
-                        allPossibleClassesOfBlacklistEntry, projectDependencies);
+                        allPossibleClassesOfBlacklistEntry, projectDependencies, 1);
             }
             blacklistEntry.setAllPossiblePackagesIncludingDependencies(allPossiblePackagesOfBlacklistEntry);
             blacklistEntry.setAllPossibleClassesIncludingDependencies(allPossibleClassesOfBlacklistEntry);
@@ -331,10 +332,12 @@ public class DependencyTreeOperator {
      * @param allPossiblePackagesOfBlacklistEntry List to save the found packages
      * @param allPossibleClassesOfBlacklistEntry  List to save the found classes
      * @param projectDependencies                 List with all project dependencies
+     * @param searchDepth                         Search depth
      */
     private void collectPackagesAndClassesFromChildren(DependencyNode node, List<String> allPossiblePackagesOfBlacklistEntry,
-                                                             List<String> allPossibleClassesOfBlacklistEntry,
-                                                             List<ProjectDependency> projectDependencies) {
+                                                       List<String> allPossibleClassesOfBlacklistEntry,
+                                                       List<ProjectDependency> projectDependencies,
+                                                       Integer searchDepth) {
 
         List<DependencyNode> childrenFromNode = node.getChildren();
         for (DependencyNode child : childrenFromNode) {
@@ -348,6 +351,10 @@ public class DependencyTreeOperator {
                 allPossiblePackagesOfBlacklistEntry.addAll(projectDependency.get().getPackages());
                 allPossibleClassesOfBlacklistEntry.addAll(projectDependency.get().getClasses());
             }
+            if (searchDepth > 0 || child.getArtifact().getArtifactId().contains("starter")) {
+                collectPackagesAndClassesFromChildren(child, allPossiblePackagesOfBlacklistEntry, allPossibleClassesOfBlacklistEntry,
+                        projectDependencies, searchDepth - 1);
+            }
         }
     }
 
@@ -359,7 +366,7 @@ public class DependencyTreeOperator {
      * @return Found node of the tree
      */
     private DependencyNode findDependencyInDependencyTree(List<DependencyNode> dependencyTreeRootNodes,
-                                                                ProjectDependency dependency) {
+                                                          ProjectDependency dependency) {
 
         for (DependencyNode dependencyTreeRootNode : dependencyTreeRootNodes) {
             Artifact artifact = dependencyTreeRootNode.getArtifact();

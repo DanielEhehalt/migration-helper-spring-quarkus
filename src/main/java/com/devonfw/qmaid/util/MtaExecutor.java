@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
@@ -21,16 +23,22 @@ public class MtaExecutor {
      * This method runs the Red Hat Migration Toolkit for Applications (MTA) to find incompatible dependencies. The result of the analysis is
      * temporarily saved in the results folder
      *
-     * @param inputProjectLocation  Path to the project which should be analyzed
-     * @param resultFolderLocation  Path to the directory where the results will be saved
+     * @param inputProjectLocation Path to the project which should be analyzed
+     * @param resultFolderLocation Path to the directory where the results will be saved
+     * @param java11Location       Path of installed Java 11
      */
-    public static void executeMtaForProject(File inputProjectLocation, File resultFolderLocation) {
+    public static void executeMtaForProject(File inputProjectLocation, File resultFolderLocation, String java11Location) {
 
         ProcessBuilder builder = new ProcessBuilder();
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
 
-        if(SystemUtils.IS_OS_WINDOWS) {
+        if (!java11Location.equals("")) {
+            Map<String, String> env = builder.environment();
+            env.put("JAVA_HOME", java11Location);
+        }
+
+        if (SystemUtils.IS_OS_WINDOWS) {
             builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",
                     "--input", inputProjectLocation.toString(),
                     "--output", resultFolderLocation.toString(),
@@ -76,16 +84,22 @@ public class MtaExecutor {
     /**
      * This method runs the Red Hat Migration Toolkit for Applications (MTA) to find reflection calls and migration issues in a library
      *
-     * @param libraryLocation Path to the jar file which should be analyzed
-     * @param resultFolderLocation      Path to the directory where the results will be saved
+     * @param libraryLocation      Path to the jar file which should be analyzed
+     * @param resultFolderLocation Path to the directory where the results will be saved
+     * @param java11Location       Path of installed Java 11
      */
-    public static void executeMtaForLibrary(File libraryLocation, File resultFolderLocation) {
+    public static void executeMtaForLibrary(File libraryLocation, File resultFolderLocation, String java11Location) {
 
         ProcessBuilder builder = new ProcessBuilder();
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
 
-        if(SystemUtils.IS_OS_WINDOWS) {
+        if (!java11Location.equals("")) {
+            Map<String, String> env = builder.environment();
+            env.put("JAVA_HOME", java11Location);
+        }
+
+        if (SystemUtils.IS_OS_WINDOWS) {
             builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",
                     "--input", libraryLocation.toString(),
                     "--output", resultFolderLocation.toString(),

@@ -61,6 +61,11 @@ public class ProjectOperator {
         String fqnOfClass = getFQN(applicationEntryPointLocation.toPath());
         try {
             context.getClassLoader().loadClass(fqnOfClass);
+        } catch (UnsupportedClassVersionError e) {
+            LOG.error("For the analysis of applications with a Java version greater than 11, QMAid must be executed with at least this version. " +
+                    "If QMAid is executed with a Java version greater than 11, an installed Java 11 version must be provided via the CLI option -j, " +
+                    "because the Migration Toolkit for Applications can only be executed within a Java 11 environment.");
+            System.exit(5);
         } catch (ClassNotFoundException e) {
             AnalysisFailureCollector.addAnalysisFailure(
                     new AnalysisFailureEntry(fqnOfClass, "Could not load class. ClassNotFoundException was thrown. Please build the project with mvn package"));
@@ -142,7 +147,9 @@ public class ProjectOperator {
      */
     public void occurrenceMeasurement(File entry, List<ProjectDependency> dependencyBlacklist, DependencyTreeOperator dependencyTreeOperator) {
 
-        dependencyTreeOperator.enhanceProjectDependencyWithPackagesAndClasses(dependencyBlacklist);
+        // Occurrence measurement can be enhanced with transitive dependencies of the blacklist items
+        // dependencyTreeOperator.enhanceProjectDependencyWithPackagesAndClassesFromTransitiveDependencies(dependencyBlacklist);
+
         File[] files = entry.listFiles();
         if (files == null) {
             AnalysisFailureCollector.addAnalysisFailure(new AnalysisFailureEntry(entry.getParent(),
@@ -193,7 +200,7 @@ public class ProjectOperator {
             String packageOfImportStatement = importStatement.substring(0, importStatement.length() - 2);
 
             for (ProjectDependency projectDependency : dependencyBlacklist) {
-                if (projectDependency.getAllPossiblePackagesIncludingDependencies().contains(packageOfImportStatement)) {
+                if (projectDependency.getPackages().contains(packageOfImportStatement)) {
                     if (!alreadyCountedForThisSource.contains(projectDependency)) {
                         projectDependency.incrementOccurrenceInProjectClasses();
                         alreadyCountedForThisSource.add(projectDependency);
@@ -202,7 +209,7 @@ public class ProjectOperator {
             }
         } else {
             for (ProjectDependency projectDependency : dependencyBlacklist) {
-                if (projectDependency.getAllPossibleClassesIncludingDependencies().contains(importStatement)) {
+                if (projectDependency.getClasses().contains(importStatement)) {
                     if (!alreadyCountedForThisSource.contains(projectDependency)) {
                         projectDependency.incrementOccurrenceInProjectClasses();
                         alreadyCountedForThisSource.add(projectDependency);
