@@ -6,6 +6,7 @@ This CLI tool analyzes Spring Boot microservices for their migratability to Quar
 
 - Java 11
 - Maven
+- For the analysis of applications with a Java version greater than 11, QMAid must be executed with at least this version. If QMAid is executed with a Java version greater than 11, an installed Java 11 version must be provided via the CLI option -j, because the Migration Toolkit for Applications can only be executed within a Java 11 environment
 
 ## Build
 
@@ -40,6 +41,7 @@ Modulith: (Given project -p must be the module that contains the @SpringBootAppl
 -p  --project               Maven project location
 -a  --app                   Application entry point file location (@SpringBootApplication)
 -m  --mavenRepo             Maven repository location
+-j  --java                  Java 11 location
 -wd --withoutDependencies   Without analysis of the reflection usage of the dependencies. This analysis can take a very long time
 -v  --verbose               Enable debug logging
 -h  --help                  Display help
@@ -77,6 +79,6 @@ https://access.redhat.com/documentation/en-us/red_hat_jboss_migration_toolkit/3.
 
 ## Current limitations
 
-- Analysis only possible for projects using Java 11 or lower
-- The analysis of projects with multiple modules is possible with limitations. When specifying the project location (-p), the folder of the module containing the application entry class must be specified (see example). Analysis is then performed only for this module. An analysis for the other modules of the application is not possible. A identification of the Java version and the project name is also not possible in this mode
 - Only Maven is supported as build tool
+- Paths must not have blanks
+- The analysis of projects with multiple modules is possible with limitations. When specifying the project location (-p), the folder of the module containing the application entry class must be specified (see example). Analysis is then performed only for this module. An analysis for the other modules of the application is not possible. A identification of the Java version and the project name is also not possible in this mode
