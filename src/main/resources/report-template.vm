@@ -41,9 +41,19 @@
                 <td>$blacklistEntry.groupId</td>
                 <td>$blacklistEntry.artifactId</td>
                 <td>$blacklistEntry.version</td>
-                <td>$blacklistEntry.occurrenceInProjectClasses/$totalJavaClassesScanned</td>
+                <td>$blacklistEntry.occurrenceInProjectClasses.size()/$totalJavaClassesScanned
+                    #if($blacklistEntry.occurrenceInProjectClasses.size() > 0)
+                        <button onclick="toggleDisplay('$blacklistEntry.groupId + : + $blacklistEntry.artifactId + : + $blacklistEntry.version</td> + :occurrence')">+</button>
+                    #end
+                </td>
                 <td>$blacklistEntry.descriptionIfBlacklisted</td>
             </tr>
+
+            <div style="display:none" id="$blacklistEntry.groupId + : + $blacklistEntry.artifactId + : + $blacklistEntry.version</td> + :occurrence">
+                #foreach($occurrence in $blacklistEntry.occurrenceInProjectClasses)
+                    <p>$occurrence</p>
+                #end
+            </div>
         #end
     </table>
 

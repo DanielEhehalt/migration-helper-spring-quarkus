@@ -303,22 +303,28 @@ public class DependencyTreeOperator {
     }
 
     /**
-     * This method enhances the project dependencies with all packages and classes
+     * This method enhances the dependencies with packages and classes
      *
      * @param dependencyBlacklist List of blacklisted dependencies
      */
-    public void enhanceProjectDependencyWithPackagesAndClassesFromTransitiveDependencies(List<ProjectDependency> dependencyBlacklist) {
+    public void enhanceDirectDependencyWithPackagesAndClassesFromTransitiveDependencies(List<ProjectDependency> dependencyBlacklist) {
 
         for (ProjectDependency blacklistEntry : dependencyBlacklist) {
 
             List<String> allPossiblePackagesOfBlacklistEntry = new ArrayList<>(blacklistEntry.getPackages());
             List<String> allPossibleClassesOfBlacklistEntry = new ArrayList<>(blacklistEntry.getClasses());
 
-            DependencyNode dependencyNode = findDependencyInDependencyTree(dependencyTreeRootNodes, blacklistEntry);
+            DependencyNode dependencyNode = findDependencyInDependencyTreeRootNodes(dependencyTreeRootNodes, blacklistEntry);
+            boolean rootNodeDependency = true;
 
-            if (dependencyNode != null) {
+            if (dependencyNode == null) {
+                dependencyNode = findDependencyInDependencyTree(dependencyTreeRootNodes, blacklistEntry);
+                rootNodeDependency = false;
+            }
+
+            if (dependencyNode != null && rootNodeDependency) {
                 collectPackagesAndClassesFromChildren(dependencyNode, allPossiblePackagesOfBlacklistEntry,
-                        allPossibleClassesOfBlacklistEntry, projectDependencies, 1);
+                        allPossibleClassesOfBlacklistEntry, projectDependencies, 2);
             }
             blacklistEntry.setAllPossiblePackagesIncludingDependencies(allPossiblePackagesOfBlacklistEntry);
             blacklistEntry.setAllPossibleClassesIncludingDependencies(allPossibleClassesOfBlacklistEntry);
@@ -351,11 +357,32 @@ public class DependencyTreeOperator {
                 allPossiblePackagesOfBlacklistEntry.addAll(projectDependency.get().getPackages());
                 allPossibleClassesOfBlacklistEntry.addAll(projectDependency.get().getClasses());
             }
-            if (searchDepth > 0 || child.getArtifact().getArtifactId().contains("starter")) {
-                collectPackagesAndClassesFromChildren(child, allPossiblePackagesOfBlacklistEntry, allPossibleClassesOfBlacklistEntry,
-                        projectDependencies, searchDepth - 1);
+//            if (searchDepth > 0 || child.getArtifact().getArtifactId().contains("starter")) {
+//            if (searchDepth > 0) {
+//                collectPackagesAndClassesFromChildren(child, allPossiblePackagesOfBlacklistEntry, allPossibleClassesOfBlacklistEntry,
+//                        projectDependencies, searchDepth - 1);
+//            }
+        }
+    }
+
+    /**
+     * This method searches a dependency in the dependency tree root nodes
+     *
+     * @param dependencyTreeRootNodes Dependency tree
+     * @param dependency              The searched dependency
+     * @return Found node of the tree
+     */
+    private DependencyNode findDependencyInDependencyTreeRootNodes(List<DependencyNode> dependencyTreeRootNodes,
+                                                                   ProjectDependency dependency) {
+
+        for (DependencyNode dependencyTreeRootNode : dependencyTreeRootNodes) {
+            Artifact artifact = dependencyTreeRootNode.getArtifact();
+            if (artifact.getGroupId().equals(dependency.getGroupId()) && artifact.getArtifactId().equals(dependency.getArtifactId()) &&
+                    artifact.getVersion().equals(dependency.getVersion())) {
+                return dependencyTreeRootNode;
             }
         }
+        return null;
     }
 
     /**
@@ -366,18 +393,12 @@ public class DependencyTreeOperator {
      * @return Found node of the tree
      */
     private DependencyNode findDependencyInDependencyTree(List<DependencyNode> dependencyTreeRootNodes,
-                                                          ProjectDependency dependency) {
+                                                                   ProjectDependency dependency) {
 
         for (DependencyNode dependencyTreeRootNode : dependencyTreeRootNodes) {
-            Artifact artifact = dependencyTreeRootNode.getArtifact();
-            if (artifact.getGroupId().equals(dependency.getGroupId()) && artifact.getArtifactId().equals(dependency.getArtifactId()) &&
-                    artifact.getVersion().equals(dependency.getVersion())) {
-                return dependencyTreeRootNode;
-            } else {
-                DependencyNode dependencyNode = checkBranches(dependencyTreeRootNode, dependency);
-                if (dependencyNode != null) {
-                    return dependencyNode;
-                }
+            DependencyNode dependencyNode = checkBranches(dependencyTreeRootNode, dependency);
+            if (dependencyNode != null) {
+                return dependencyNode;
             }
         }
         return null;

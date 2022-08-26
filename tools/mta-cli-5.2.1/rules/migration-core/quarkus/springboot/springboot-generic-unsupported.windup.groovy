@@ -25,7 +25,7 @@ ruleSet("springboot-generic-unsupported-groovy")
         .perform(
                 Iteration.over("dependency")
                     .perform(
-                        ((Hint) Hint.titled("Spring component {artifact} requires investigation")
+                        ((Hint) Hint.titled("Spring {group}:{artifact} component is not supported by Quarkus. Code relying on this dependency cannot currently be run in Quarkus.")
                         .withText("""
                         Spring `{group}:{artifact}` component is not supported by Quarkus.  
                         Code relying on this dependency cannot currently be run in Quarkus.  

@@ -148,7 +148,7 @@ public class ProjectOperator {
     public void occurrenceMeasurement(File entry, List<ProjectDependency> dependencyBlacklist, DependencyTreeOperator dependencyTreeOperator) {
 
         // Occurrence measurement can be enhanced with transitive dependencies of the blacklist items
-        // dependencyTreeOperator.enhanceProjectDependencyWithPackagesAndClassesFromTransitiveDependencies(dependencyBlacklist);
+        dependencyTreeOperator.enhanceDirectDependencyWithPackagesAndClassesFromTransitiveDependencies(dependencyBlacklist);
 
         File[] files = entry.listFiles();
         if (files == null) {
@@ -188,35 +188,66 @@ public class ProjectOperator {
             List<String> importStatements = source.getImports();
             totalJavaClassesScanned = totalJavaClassesScanned + 1;
             for (String importStatement : importStatements) {
-                mapAndCount(dependencyBlacklist, alreadyCountedForThisSource, importStatement);
+                mapAndCount(dependencyBlacklist, alreadyCountedForThisSource, importStatement, file);
             }
         }
     }
 
     private void mapAndCount(List<ProjectDependency> dependencyBlacklist, List<ProjectDependency> alreadyCountedForThisSource,
-                                    String importStatement) {
+                                    String importStatement, File file) {
 
         if (importStatement.endsWith("*")) {
             String packageOfImportStatement = importStatement.substring(0, importStatement.length() - 2);
 
             for (ProjectDependency projectDependency : dependencyBlacklist) {
-                if (projectDependency.getPackages().contains(packageOfImportStatement)) {
+                if (projectDependency.getAllPossiblePackagesIncludingDependencies().contains(packageOfImportStatement)) {
                     if (!alreadyCountedForThisSource.contains(projectDependency)) {
-                        projectDependency.incrementOccurrenceInProjectClasses();
+                        projectDependency.getOccurrenceInProjectClasses().add(generateReason(file, importStatement));
                         alreadyCountedForThisSource.add(projectDependency);
                     }
                 }
             }
         } else {
             for (ProjectDependency projectDependency : dependencyBlacklist) {
-                if (projectDependency.getClasses().contains(importStatement)) {
+                if (projectDependency.getAllPossibleClassesIncludingDependencies().contains(importStatement)) {
                     if (!alreadyCountedForThisSource.contains(projectDependency)) {
-                        projectDependency.incrementOccurrenceInProjectClasses();
+                        projectDependency.getOccurrenceInProjectClasses().add(generateReason(file, importStatement));
                         alreadyCountedForThisSource.add(projectDependency);
+                    } else {
+                        projectDependency.setOccurrenceInProjectClasses(enhanceReason(projectDependency.getOccurrenceInProjectClasses(), importStatement));
                     }
                 }
             }
         }
+    }
+
+    private String generateReason(File file, String importStatement) {
+
+        String filename = file.toString();
+        String reason;
+
+        int indexOfLastSlash = filename.lastIndexOf("/");
+        if (indexOfLastSlash == -1) {
+            int indexOfLastBackslash = filename.lastIndexOf("\\");
+            reason = "<strong>" + filename.substring(indexOfLastBackslash + 1) + ":</strong> " + importStatement;
+        } else {
+            reason = "<strong>" + filename.substring(indexOfLastSlash + 1) + ":</strong> " + importStatement;
+        }
+
+        return reason;
+    }
+
+    private List<String> enhanceReason(List<String> occurrenceInProjectClasses, String importStatement) {
+
+        List<String> enhancedOccurrenceInProjectClasses = new ArrayList<>();
+        occurrenceInProjectClasses.forEach(occurrence -> {
+            if (occurrence.contains(importStatement)) {
+                enhancedOccurrenceInProjectClasses.add(occurrence);
+            } else {
+                enhancedOccurrenceInProjectClasses.add(occurrence + ", " + importStatement);
+            }
+        });
+        return enhancedOccurrenceInProjectClasses;
     }
 
     public Integer getTotalJavaClassesScanned() {

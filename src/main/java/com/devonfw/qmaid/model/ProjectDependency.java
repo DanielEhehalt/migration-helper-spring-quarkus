@@ -15,7 +15,7 @@ public class ProjectDependency {
     List<String> classes;
     List<String> allPossiblePackagesIncludingDependencies;
     List<String> allPossibleClassesIncludingDependencies;
-    Integer occurrenceInProjectClasses;
+    List<String> occurrenceInProjectClasses;
     Boolean isBlacklisted;
     String descriptionIfBlacklisted;
 
@@ -29,7 +29,7 @@ public class ProjectDependency {
         this.allPossiblePackagesIncludingDependencies = new ArrayList<>();
         this.allPossibleClassesIncludingDependencies = new ArrayList<>();
         this.isBlacklisted = false;
-        this.occurrenceInProjectClasses = 0;
+        this.occurrenceInProjectClasses = new ArrayList<>();
     }
 
     public String getGroupId() {
@@ -88,16 +88,12 @@ public class ProjectDependency {
         this.allPossibleClassesIncludingDependencies = allPossibleClassesIncludingDependencies;
     }
 
-    public Integer getOccurrenceInProjectClasses() {
+    public List<String> getOccurrenceInProjectClasses() {
         return occurrenceInProjectClasses;
     }
 
-    public void setOccurrenceInProjectClasses(Integer occurrenceInProjectClasses) {
+    public void setOccurrenceInProjectClasses(List<String> occurrenceInProjectClasses) {
         this.occurrenceInProjectClasses = occurrenceInProjectClasses;
-    }
-
-    public void incrementOccurrenceInProjectClasses() {
-        this.occurrenceInProjectClasses++;
     }
 
     public Boolean getBlacklisted() {

@@ -1,0 +1,1 @@
+-p C:/Projects/test-project/workspaces/main/spring-rest-service -a C:/Projects/test-project/workspaces/main/spring-rest-service/src/main/java/com/example/restservice/RestServiceApplication.java -m C:/Projects/test-project/conf/.m2/repository
