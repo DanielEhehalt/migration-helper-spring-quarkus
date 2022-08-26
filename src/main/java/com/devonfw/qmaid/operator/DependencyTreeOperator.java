@@ -324,7 +324,7 @@ public class DependencyTreeOperator {
 
             if (dependencyNode != null && rootNodeDependency) {
                 collectPackagesAndClassesFromChildren(dependencyNode, allPossiblePackagesOfBlacklistEntry,
-                        allPossibleClassesOfBlacklistEntry, projectDependencies, 2);
+                        allPossibleClassesOfBlacklistEntry, projectDependencies);
             }
             blacklistEntry.setAllPossiblePackagesIncludingDependencies(allPossiblePackagesOfBlacklistEntry);
             blacklistEntry.setAllPossibleClassesIncludingDependencies(allPossibleClassesOfBlacklistEntry);
@@ -338,12 +338,10 @@ public class DependencyTreeOperator {
      * @param allPossiblePackagesOfBlacklistEntry List to save the found packages
      * @param allPossibleClassesOfBlacklistEntry  List to save the found classes
      * @param projectDependencies                 List with all project dependencies
-     * @param searchDepth                         Search depth
      */
     private void collectPackagesAndClassesFromChildren(DependencyNode node, List<String> allPossiblePackagesOfBlacklistEntry,
                                                        List<String> allPossibleClassesOfBlacklistEntry,
-                                                       List<ProjectDependency> projectDependencies,
-                                                       Integer searchDepth) {
+                                                       List<ProjectDependency> projectDependencies) {
 
         List<DependencyNode> childrenFromNode = node.getChildren();
         for (DependencyNode child : childrenFromNode) {
@@ -357,11 +355,6 @@ public class DependencyTreeOperator {
                 allPossiblePackagesOfBlacklistEntry.addAll(projectDependency.get().getPackages());
                 allPossibleClassesOfBlacklistEntry.addAll(projectDependency.get().getClasses());
             }
-//            if (searchDepth > 0 || child.getArtifact().getArtifactId().contains("starter")) {
-//            if (searchDepth > 0) {
-//                collectPackagesAndClassesFromChildren(child, allPossiblePackagesOfBlacklistEntry, allPossibleClassesOfBlacklistEntry,
-//                        projectDependencies, searchDepth - 1);
-//            }
         }
     }
 

@@ -214,11 +214,14 @@ public class ReportGenerator {
 
     private String getDescriptionOfOccurrenceMeasurement() {
 
-        return "The occurrence measurement indicates the strength of the bonding between the dependency and the code. " +
+        return "The measurement of the occurrence indicates the strength of the binding between the dependency and the code. " +
                 "For this purpose, all import statements of all Java classes of the project are analyzed. " +
-                "For the assignment all possible packages and classes of a dependency are collected. " +
-                "If a class or a package of a dependency is found in an import statement in a class of the user code, the counter is incremented once per class." +
-                "The number of all scanned Java classes will be displayed for a better estimation";
+                "All possible packages and classes of a dependency are collected for the mapping. For direct dependencies, " +
+                "the packages and classes of the transitive dependencies are also collected. " +
+                "If a class or a package of a dependency is found in an import statement in a class of the user code, the counter is incremented once per class. " +
+                "For a better evaluation, the number of all scanned Java classes is also displayed. " +
+                "The adjacent button displays all classes determined in this way. " +
+                "For better traceability, all import statements that were responsible for the assignment are also listed for the classes.";
     }
 
     private String getDescriptionOfReflectionUsageInProject() {
