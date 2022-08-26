@@ -6,7 +6,7 @@ This CLI tool analyzes Spring Boot microservices for their migratability to Quar
 
 - Java 11
 - Maven
-- For the analysis of applications with a Java version greater than 11, QMAid must be executed with at least this version. If QMAid is executed with a Java version greater than 11, an installed Java 11 version must be provided via the CLI option -j, because the Migration Toolkit for Applications can only be executed within a Java 11 environment.
+- For the analysis of applications with a Java version greater than 11, QMAid must be executed with at least this version. If QMAid is executed with a Java version greater than 11, an installed Java 11 version must be provided via the CLI option `-j`, because the Migration Toolkit for Applications can only be executed within a Java 11 environment.
 
 ## Build
 
@@ -48,7 +48,8 @@ Modulith: (Given project -p must be the module that contains the @SpringBootAppl
 ```
 
 ## Understanding results
-This information is also available in the report, by pressing the ```Info``` buttons.
+The generated report ist available in the `results` directory.
+This information is also available in the report, by pressing the `Info` buttons.
 
 **General issues:** \
 The issues listed below are general issues and are not assignable to a specific dependency. The rule-based analysis also detects configuration issues or parent POMs. In these cases, only the description of the triggered rule is displayed
@@ -72,7 +73,7 @@ To ensure the stability of the execution of the analysis, exceptions are just co
 
 The analysis is mainly based on a rule-based analysis which is performed using the Red Hat Migration Toolkit for Applications. This makes it easy to extend the analysis with new requirements. To add rules, create a folder under tools/custom-mta-rules and enter rules using the windup rules syntax.
 
-Important: To collect dependency and project issues, you must set the metadata property ```<targetTechnology id="quarkus"/>``` and the element attribute ```category-id="mandatory"```. Other targets and categories are currently ignored. The element attribute ```title``` is used for descriptions.
+Important: To collect dependency and project issues, you must set the metadata property `<targetTechnology id="quarkus"/>` and the element attribute `category-id="mandatory"`. Other targets and categories are currently ignored. The element attribute `title` is used for descriptions.
 
 More information on creating windup rules:
 https://access.redhat.com/documentation/en-us/red_hat_jboss_migration_toolkit/3.0/html-single/windup_rules_development_guide/index#creating_xml_rules
@@ -81,4 +82,4 @@ https://access.redhat.com/documentation/en-us/red_hat_jboss_migration_toolkit/3.
 
 - Only Maven is supported as build tool
 - Paths must not have blanks
-- The analysis of projects with multiple modules is possible with limitations. When specifying the project location (-p), the folder of the module containing the application entry class must be specified (see example). Analysis is then performed only for this module. An analysis for the other modules of the application is not possible. A identification of the Java version and the project name is also not possible in this mode
+- The analysis of projects with multiple modules is possible with limitations. When specifying the project location `-p`, the folder of the module containing the application entry class must be specified (see example). Analysis is then performed only for this module. An analysis for the other modules of the application is not possible. A identification of the Java version and the project name is also not possible in this mode
