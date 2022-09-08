@@ -25,18 +25,12 @@ public class MtaExecutor {
      *
      * @param inputProjectLocation Path to the project which should be analyzed
      * @param resultFolderLocation Path to the directory where the results will be saved
-     * @param java11Location       Path of installed Java 11
      */
-    public static void executeMtaForProject(File inputProjectLocation, File resultFolderLocation, String java11Location) {
+    public static void executeMtaForProject(File inputProjectLocation, File resultFolderLocation) {
 
         ProcessBuilder builder = new ProcessBuilder();
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
-
-        if (!java11Location.equals("")) {
-            Map<String, String> env = builder.environment();
-            env.put("JAVA_HOME", java11Location);
-        }
 
         if (SystemUtils.IS_OS_WINDOWS) {
             builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",
@@ -86,18 +80,12 @@ public class MtaExecutor {
      *
      * @param libraryLocation      Path to the jar file which should be analyzed
      * @param resultFolderLocation Path to the directory where the results will be saved
-     * @param java11Location       Path of installed Java 11
      */
-    public static void executeMtaForLibrary(File libraryLocation, File resultFolderLocation, String java11Location) {
+    public static void executeMtaForLibrary(File libraryLocation, File resultFolderLocation) {
 
         ProcessBuilder builder = new ProcessBuilder();
         builder.redirectErrorStream(true);
         builder.directory(new File(System.getProperty("user.dir")));
-
-        if (!java11Location.equals("")) {
-            Map<String, String> env = builder.environment();
-            env.put("JAVA_HOME", java11Location);
-        }
 
         if (SystemUtils.IS_OS_WINDOWS) {
             builder.command("tools" + File.separator + "mta-cli-5.2.1" + File.separator + "bin" + File.separator + "mta-cli.bat",

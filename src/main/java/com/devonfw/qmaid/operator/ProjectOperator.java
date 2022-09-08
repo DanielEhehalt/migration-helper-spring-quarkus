@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -58,20 +57,6 @@ public class ProjectOperator {
             return;
         }
 
-        String fqnOfClass = getFQN(applicationEntryPointLocation.toPath());
-        try {
-            context.getClassLoader().loadClass(fqnOfClass);
-        } catch (UnsupportedClassVersionError e) {
-            LOG.error("For the analysis of applications with a Java version greater than 11, QMAid must be executed with at least this version. " +
-                    "If QMAid is executed with a Java version greater than 11, an installed Java 11 version must be provided via the CLI option -j, " +
-                    "because the Migration Toolkit for Applications can only be executed within a Java 11 environment.");
-            System.exit(5);
-        } catch (ClassNotFoundException e) {
-            AnalysisFailureCollector.addAnalysisFailure(
-                    new AnalysisFailureEntry(fqnOfClass, "Could not load class. ClassNotFoundException was thrown. Please build the project with mvn package"));
-            LOG.debug("Could not find class. Please build the project with mvn package", e);
-        }
-
         applicationStartupLibrariesOfProject = new ArrayList<>();
         URL[] urls = dependencyCollector.asUrls();
         for (URL url : urls) {
@@ -95,46 +80,6 @@ public class ProjectOperator {
                 }
             }
         }
-    }
-
-    /**
-     * This method is traversing parent folders until it reaches java folder in order to get the FQN
-     *
-     * @param inputFile Java input file to retrieve FQN (Full Qualified Name)
-     * @return qualified name with full package
-     */
-    private String getFQN(Path inputFile) {
-
-        String simpleName = inputFile.getFileName().toString().replaceAll("\\.(?i)java", "");
-        String packageName = getPackageName(inputFile.getParent(), "");
-
-        return packageName + "." + simpleName;
-    }
-
-    /**
-     * This method traverse the folder in reverse order from child to parent
-     *
-     * @param folder      parent input file
-     * @param packageName the package name
-     * @return package name
-     */
-    private String getPackageName(Path folder, String packageName) {
-
-        if (folder == null) {
-            return null;
-        }
-
-        if (folder.getFileName().toString().toLowerCase().equals("java")) {
-            String[] pkgs = packageName.split("\\.");
-
-            packageName = pkgs[pkgs.length - 1];
-            // Reverse order as we have traversed folders from child to parent
-            for (int i = pkgs.length - 2; i > 0; i--) {
-                packageName = packageName + "." + pkgs[i];
-            }
-            return packageName;
-        }
-        return getPackageName(folder.getParent(), packageName + "." + folder.getFileName().toString());
     }
 
     /**

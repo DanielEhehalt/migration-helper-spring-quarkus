@@ -43,9 +43,6 @@ public class Application implements Runnable {
     @CommandLine.Option(names = {"-m", "--mavenRepo"}, defaultValue = "", description = "Maven repository location")
     private String mavenRepo;
 
-    @CommandLine.Option(names = {"-j", "--java"}, defaultValue = "", description = "Java 11 location")
-    private String java11Location;
-
     @CommandLine.Option(names = {"-wd", "--withoutDependencies"}, defaultValue = "false",
             description = "With analysis of the reflection usage of the dependencies")
     private Boolean withoutDependencyAnalysis;
@@ -81,17 +78,6 @@ public class Application implements Runnable {
             Configurator.setAllLevels(logger.getName(), Level.INFO);
         }
 
-        //Java Version check
-        if (Integer.parseInt(System.getProperty("java.specification.version")) > 11) {
-            if (!new File(java11Location).exists()) {
-                LOG.error("For the analysis of applications with a Java version greater than 11, QMAid must be executed with at least this version. " +
-                        "If QMAid is executed with a Java version greater than 11, an installed Java 11 version must be provided via the CLI option -j, " +
-                        "because the Migration Toolkit for Applications can only be executed within a Java 11 environment.");
-                LOG.error("Can not found Java 11 version in: " + java11Location);
-                System.exit(5);
-            }
-        }
-
         //Execute analysis
         if (!inputProject.equals("") && !mavenRepo.equals("") && !app.equals("")) {
             File inputProjectLocation = new File(this.inputProject);
@@ -121,7 +107,7 @@ public class Application implements Runnable {
         DependencyTreeOperator dependencyTreeOperator = new DependencyTreeOperator(projectPomLocation, mavenRepoLocation,
                 projectOperator.getApplicationStartupLibrariesOfProject());
 
-        MtaExecutor.executeMtaForProject(inputProjectLocation, resultFolderLocation, java11Location);
+        MtaExecutor.executeMtaForProject(inputProjectLocation, resultFolderLocation);
         List<List<String>> mtaOutput = CsvParser.parseCSV(resultFolderLocation);
 
         MtaIssuesCollector mtaIssuesCollector = new MtaIssuesCollector();
@@ -132,7 +118,7 @@ public class Application implements Runnable {
         if (!withoutDependencyAnalysis) {
             LOG.info("Start scanning dependencies. " + dependencyTreeOperator.getAllArtifactsOfProject().size() + " dependencies found");
             dependencyTreeOperator.getAllArtifactsOfProject().forEach(dependency -> {
-                MtaExecutor.executeMtaForLibrary(dependency.getFile(), resultFolderLocation, java11Location);
+                MtaExecutor.executeMtaForLibrary(dependency.getFile(), resultFolderLocation);
                 List<List<String>> mtaOutputDependency = CsvParser.parseCSV(resultFolderLocation);
                 mtaIssuesCollector.generateMtaIssuesList(mtaOutputDependency);
                 reflectionUsageCollector.generateReflectionUsageInDependenciesList(mtaOutputDependency);
@@ -206,7 +192,6 @@ public class Application implements Runnable {
                 "-p  --project                Maven project location (mandatory)\n" +
                 "-a  --app                    Application entry point location (@SpringBootApplication) (mandatory)\n" +
                 "-m  --mavenRepo              Local Maven repository location (mandatory)\n" +
-                "-j  --java                   Java 11 location\n" +
                 "-wd --withoutDependencies    Without analysis of the reflection usage of the dependencies. This analysis can take a very long time\n" +
                 "-v  --verbose                Enable debug logging\n" +
                 "-h  --help                   Display help";
