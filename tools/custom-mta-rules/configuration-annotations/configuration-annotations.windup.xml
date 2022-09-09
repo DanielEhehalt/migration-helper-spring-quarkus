@@ -11,7 +11,7 @@
             <addon id="org.jboss.windup.rules,windup-rules-java,3.0.0.Final"/>
             <addon id="org.jboss.windup.rules,windup-rules-xml,3.0.0.Final"/>
         </dependencies>
-        <targetTechnology id="quarkus-extended"/>
+        <targetTechnology id="configuration"/>
     </metadata>
     <rules>
         <rule id="configuration-annotations-0000">
@@ -22,7 +22,7 @@
             </when>
             <perform>
                 <hint title="@Value annotation must be replayed by @ConfigProperty"
-                      category-id="mandatory" effort="1">
+                      category-id="configuration" effort="1">
                     <message>Configuration annotation @Value must be replayed by @ConfigProperty.
                     </message>
                 </hint>
@@ -37,7 +37,7 @@
             <perform>
                 <hint title="Configuration annotation @ConfigurationProperties can be used in Quarkus with the Spring Boot Properties API.
                         https://quarkus.io/guides/spring-boot-properties"
-                      category-id="mandatory" effort="1">
+                      category-id="configuration" effort="1">
                     <message>Configuration annotation @ConfigurationProperties can be used in Quarkus with the Spring Boot Properties API.
                         https://quarkus.io/guides/spring-boot-properties
                     </message>

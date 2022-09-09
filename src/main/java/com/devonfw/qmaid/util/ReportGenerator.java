@@ -1,11 +1,8 @@
 package com.devonfw.qmaid.util;
 
+import com.devonfw.qmaid.model.*;
 import com.devonfw.qmaid.operator.PomOperator;
 import com.devonfw.qmaid.collector.AnalysisFailureCollector;
-import com.devonfw.qmaid.model.MtaIssue;
-import com.devonfw.qmaid.model.ProjectDependency;
-import com.devonfw.qmaid.model.ReflectionUsageInDependencies;
-import com.devonfw.qmaid.model.ReflectionUsageInProject;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
@@ -30,25 +27,29 @@ public class ReportGenerator {
 
     public ReportGenerator(List<ProjectDependency> dependencyBlacklist, Integer totalJavaClassesScanned, List<MtaIssue> mtaIssuesList,
                            List<ReflectionUsageInProject> reflectionUsageInProject, List<ReflectionUsageInDependencies> reflectionUsageInDependencies,
-                           List<DependencyNode> dependencyTreeRootNodes, File projectPomLocation, File resultFolderLocation,
+                           List<DependencyNode> dependencyTreeRootNodes, List<ConfigurationUsageInProject> configurationInjectionUsageInProject,
+                           List<ConfigurationUsageInProject> configurationPropertyUsageInProject, File projectPomLocation, File resultFolderLocation,
                            Boolean withoutReflectionUsageOfDependencies) {
 
         generateReport(dependencyBlacklist, totalJavaClassesScanned, mtaIssuesList, reflectionUsageInProject, reflectionUsageInDependencies,
-                dependencyTreeRootNodes, projectPomLocation, resultFolderLocation, withoutReflectionUsageOfDependencies);
+                dependencyTreeRootNodes, configurationInjectionUsageInProject, configurationPropertyUsageInProject, projectPomLocation,
+                resultFolderLocation, withoutReflectionUsageOfDependencies);
     }
 
     /**
      * This method generates the HTML report
      *
-     * @param dependencyBlacklist           Blacklisted Dependencies
-     * @param totalJavaClassesScanned       Total classes scanned by the occurrence measurement
-     * @param reflectionUsageInProject      List of reflection usage in the project
-     * @param mtaIssuesList                 Found issues of the MTA analysis
-     * @param reflectionUsageInDependencies List of reflection usage in the project dependencies
-     * @param dependencyTreeRootNodes       List with the root nodes of the dependency tree
-     * @param projectPomLocation            Location of project POM
-     * @param resultFolderLocation          Path to the directory where the report will be saved
-     * @param withoutDependencyAnalysis     CLI option
+     * @param dependencyBlacklist                  Blacklisted Dependencies
+     * @param totalJavaClassesScanned              Total classes scanned by the occurrence measurement
+     * @param reflectionUsageInProject             List of reflection usage in the project
+     * @param mtaIssuesList                        Found issues of the MTA analysis
+     * @param reflectionUsageInDependencies        List of reflection usage in the project dependencies
+     * @param dependencyTreeRootNodes              List with the root nodes of the dependency tree
+     * @param configurationInjectionUsageInProject List of @Value Spring configuration usage in the project
+     * @param configurationPropertyUsageInProject  List of @ConfigurationProperty Spring configuration usage in the project
+     * @param projectPomLocation                   Location of project POM
+     * @param resultFolderLocation                 Path to the directory where the report will be saved
+     * @param withoutDependencyAnalysis            CLI option
      */
     private void generateReport(List<ProjectDependency> dependencyBlacklist,
                                 Integer totalJavaClassesScanned,
@@ -56,6 +57,8 @@ public class ReportGenerator {
                                 List<ReflectionUsageInProject> reflectionUsageInProject,
                                 List<ReflectionUsageInDependencies> reflectionUsageInDependencies,
                                 List<DependencyNode> dependencyTreeRootNodes,
+                                List<ConfigurationUsageInProject> configurationInjectionUsageInProject,
+                                List<ConfigurationUsageInProject> configurationPropertyUsageInProject,
                                 File projectPomLocation,
                                 File resultFolderLocation,
                                 Boolean withoutDependencyAnalysis) {
@@ -97,6 +100,14 @@ public class ReportGenerator {
         context.put("withoutDependencyAnalysis", withoutDependencyAnalysis);
         context.put("dependencyTree", printDependencyTree(dependencyTreeRootNodes, reflectionUsageInDependencies).iterator());
         context.put("reflectionUsageInDependenciesListSize", reflectionUsageInDependencies.size());
+
+        context.put("descriptionOfConfigurationInjectionUsageInProject", getDescriptionOfConfigurationInjectionUsageInProject());
+        context.put("configurationInjectionUsageInProjectList", configurationInjectionUsageInProject.iterator());
+        context.put("configurationInjectionUsageInProjectListSize", configurationInjectionUsageInProject.size());
+
+        context.put("descriptionOfConfigurationPropertyUsageInProject", getDescriptionOfConfigurationPropertyUsageInProject());
+        context.put("configurationPropertyUsageInProjectList", configurationPropertyUsageInProject.iterator());
+        context.put("configurationPropertyUsageInProjectListSize", configurationPropertyUsageInProject.size());
 
         context.put("descriptionOfAnalysisFailures", getDescriptionOfAnalysisFailures());
         context.put("analysisFailuresList", AnalysisFailureCollector.getAnalysisFailures());
@@ -235,6 +246,17 @@ public class ReportGenerator {
         return "For determining the reflection usage in the dependencies, all import statements of a dependency are checked for the occurrence of the java.lang.reflect package. " +
                 "The number of classes that imports the reflection API are shown in the brackets. The names of the identified classes can be displayed using the button next to it. " +
                 "To shorten the tree, duplicate entries are marked with an asterisk and are not further executed.";
+    }
+
+    private String getDescriptionOfConfigurationInjectionUsageInProject() {
+
+        return "In Quarkus, all @Value annotations must be replaced with @ConfigProperty. Which classes use @Value are listed below.";
+    }
+
+    private String getDescriptionOfConfigurationPropertyUsageInProject() {
+
+        return "In Quarkus, the configuration annotation @ConfigurationProperties can be further used with the Quarkus Spring Boot Properties API. " +
+                "Link to documentation: https://quarkus.io/guides/spring-boot-properties. Which classes use @ConfigurationProperties are listed below.";
     }
 
     private String getDescriptionOfAnalysisFailures() {

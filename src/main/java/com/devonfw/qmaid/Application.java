@@ -1,5 +1,6 @@
 package com.devonfw.qmaid;
 
+import com.devonfw.qmaid.collector.ConfigurationUsageCollector;
 import com.devonfw.qmaid.collector.DependencyBlacklistCollector;
 import com.devonfw.qmaid.collector.MtaIssuesCollector;
 import com.devonfw.qmaid.collector.ReflectionUsageCollector;
@@ -114,6 +115,7 @@ public class Application implements Runnable {
         mtaIssuesCollector.generateMtaIssuesList(mtaOutput);
 
         ReflectionUsageCollector reflectionUsageCollector = new ReflectionUsageCollector(inputProjectLocation, mtaOutput);
+        ConfigurationUsageCollector configurationUsageCollector = new ConfigurationUsageCollector(inputProjectLocation, mtaOutput);
 
         if (!withoutDependencyAnalysis) {
             LOG.info("Start scanning dependencies. " + dependencyTreeOperator.getAllArtifactsOfProject().size() + " dependencies found");
@@ -138,6 +140,7 @@ public class Application implements Runnable {
                 projectOperator.getTotalJavaClassesScanned(), mtaIssuesCollector.getMtaIssuesList(),
                 reflectionUsageCollector.getReflectionUsageInProject(),
                 reflectionUsageCollector.getReflectionUsageInDependencies(), dependencyTreeOperator.getDependencyTreeRootNodes(),
+                configurationUsageCollector.getConfigurationInjectionUsageInProject(), configurationUsageCollector.getConfigurationPropertyUsageInProject(),
                 projectPomLocation, resultFolderLocation, withoutDependencyAnalysis);
     }
 

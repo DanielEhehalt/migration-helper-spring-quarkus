@@ -56,7 +56,8 @@ public class CsvParser {
             //Save mandatory issues of csv file in list
             String[] values;
             while ((values = csvReader.readNext()) != null) {
-                if (Arrays.asList(values).contains("mandatory") || Arrays.asList(values).contains("reflection")) {
+                if (Arrays.asList(values).contains("mandatory") || Arrays.asList(values).contains("reflection") || Arrays.asList(values)
+                        .contains("configuration")) {
                     records.add(Arrays.asList(values));
                 }
             }

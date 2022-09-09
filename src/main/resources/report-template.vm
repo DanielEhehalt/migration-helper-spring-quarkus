@@ -82,6 +82,41 @@
         #end
     #end
 
+    <h2>Spring Configuration Annotation usage</h2>
+    <h3>@Value Annotations (found: $configurationInjectionUsageInProjectListSize) <button onclick="toggleDisplay('descriptionOfConfigurationInjectionUsageInProject')">Info</button></h3>
+    <div style="display:none" id="descriptionOfConfigurationInjectionUsageInProject"><p>$descriptionOfConfigurationInjectionUsageInProject</p></div>
+    #if($configurationInjectionUsageInProjectListSize > 0)
+        <table>
+            <tr>
+                <th>Class</th>
+                <th>Path</th>
+            </tr>
+            #foreach($configurationInjectionUsage in $configurationInjectionUsageInProjectList)
+                <tr>
+                    <td>$configurationInjectionUsage.className</td>
+                    <td>$configurationInjectionUsage.path</td>
+                </tr>
+            #end
+        </table>
+    #end
+
+    <h3>@PropertyConfiguration Annotations (found: $configurationPropertyUsageInProjectListSize) <button onclick="toggleDisplay('descriptionOfConfigurationPropertyUsageInProject')">Info</button></h3>
+    <div style="display:none" id="descriptionOfConfigurationPropertyUsageInProject"><p>$descriptionOfConfigurationPropertyUsageInProject</p></div>
+    #if($configurationPropertyUsageInProjectListSize > 0)
+        <table>
+            <tr>
+                <th>Class</th>
+                <th>Path</th>
+            </tr>
+            #foreach($configurationPropertyUsage in $configurationPropertyUsageInProjectList)
+                <tr>
+                    <td>$configurationPropertyUsage.className</td>
+                    <td>$configurationPropertyUsage.path</td>
+                </tr>
+            #end
+        </table>
+    #end
+
     <h2>Analysis Failures (found: $analysisFailuresListSize) <button onclick="toggleDisplay('descriptionOfAnalysisFailures')">Info</button></h2>
     <div style="display:none" id="descriptionOfAnalysisFailures"><p>$descriptionOfAnalysisFailures</p></div>
     #if($analysisFailuresListSize > 0)
