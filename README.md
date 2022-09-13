@@ -64,6 +64,9 @@ For determining the reflection usage in the code of the project, all import stat
 **Reflection usage in dependencies as dependency tree:** \
 For determining the reflection usage in the dependencies, all import statements of a dependency are checked for the occurrence of the java.lang.reflect package. The number of classes that imports the reflection API are shown in the brackets. The names of the identified classes can be displayed using the button next to it. To shorten the tree, duplicate entries are marked with an asterisk and are not further executed.
 
+**Spring Configuration Annotation usage:** \
+In Quarkus, the Spring Boot annotations used for the application configuration can be partially reused. All @Value annotations must be replaced with @ConfigProperty. The configuration annotation @ConfigurationProperties can be further used with the Quarkus Spring Boot Properties API. Link to documentation: https://quarkus.io/guides/spring-boot-properties.
+
 **Analysis Failures:** \
 To ensure the stability of the execution of the analysis, exceptions are just collected and displayed below. For a more detailed failure analysis the use of the --verbose argument is recommended.
 
